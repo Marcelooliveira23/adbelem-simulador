@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha conta - Intranet AD Belém</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<link rel="stylesheet" href="css/app.css">
+<style>
+.segredo{font-family:ui-monospace,Consolas,monospace;font-size:17px;letter-spacing:.08em;background:#f6f1e7;padding:10px 12px;
+  border-radius:8px;word-break:break-all;user-select:all}
+.forca{height:6px;border-radius:3px;background:var(--ln);margin-top:6px;overflow:hidden}
+.forca i{display:block;height:100%;width:0;transition:width .2s,background .2s}
+</style>
+</head>
+<body>
+<header></header>
+<div class="layout">
+ <nav id="nav"></nav>
+ <main id="main"><p class="vazio">Carregando...</p></main>
+</div>
+<div id="toast"></div>
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script src="js/crud.js"></script>
+<script>
+const OBRIGATORIO = new URLSearchParams(location.search).get('obrigatorio') === '1' || Auth.dados()?.ts;
+
+function forcaSenha(s) {
+  let p = 0;
+  if (s.length >= 8) p++; if (s.length >= 12) p++;
+  if (/[a-z]/.test(s) && /[A-Z]/.test(s)) p++; if (/\d/.test(s)) p++; if (/[^A-Za-z0-9]/.test(s)) p++;
+  return p;
+}
+
+function blocoSenha() {
+  return `<div class="card" style="max-width:520px"><h3>${OBRIGATORIO ? '🔑 Crie sua senha pessoal' : 'Trocar minha senha'}</h3>
+    ${OBRIGATORIO ? '<div class="note">Sua senha atual é provisória (foi definida por outra pessoa). Para continuar, crie uma senha que só você saiba.</div>' : ''}
+    <form id="fSenha">
+      <label class="l" for="sAtual">Senha atual${OBRIGATORIO ? ' (a provisória)' : ''}</label><input type="password" id="sAtual" required autocomplete="current-password" style="width:100%">
+      <label class="l" for="sNova">Nova senha</label><input type="password" id="sNova" required minlength="8" autocomplete="new-password" style="width:100%">
+      <div class="forca"><i id="forcaBarra"></i></div>
+      <small style="color:var(--mut)">Mínimo de 8 caracteres, com letras e números. Não use seu nome, e-mail ou senhas óbvias.
+        Dica: uma frase curta, como <i>Louvor-no-domingo-26</i>.</small>
+      <label class="l" for="sConf">Repita a nova senha</label><input type="password" id="sConf" required autocomplete="new-password" style="width:100%">
+      <div class="acoes-form"><button class="btn pri">Salvar nova senha</button></div>
+    </form></div>`;
+}
+
+async function carregar() {
+  const nav = await iniciarLayout('conta');
+  if (!nav) return;
+  const main = document.getElementById('main');
+  if (OBRIGATORIO) {
+    main.innerHTML = `<div class="ph"><h1>Minha conta</h1></div>${blocoSenha()}`;
+    ligarSenha();
+    return;
+  }
+  let info;
+  try { info = await api('/auth/minha-conta'); } catch (e) { main.innerHTML = `<p class="vazio">${esc(e.message)}</p>`; return; }
+  const u = info.usuario;
+  main.innerHTML = `<div class="ph"><h1>Minha conta</h1></div>
+    <div class="grid g2">
+      ${blocoSenha()}
+      <div class="card"><h3>Verificação em duas etapas (2FA)</h3>
+        <p style="font-size:13.5px">Além da senha, o sistema pede um código de 6 números gerado no seu celular. Mesmo que alguém descubra sua
+          senha, não consegue entrar. <b>Recomendado para quem administra acessos ou mexe com dinheiro.</b></p>
+        <p>Situação: <span class="badge ${u.totp_ativo ? 'b-ok' : 'b-pend'}">${u.totp_ativo ? 'Ativada' : 'Desativada'}</span></p>
+        <div id="area2fa">${u.totp_ativo ? '<button class="btn no" id="bt2faOff">Desativar</button>' : '<button class="btn pri" id="bt2faOn">Ativar verificação em duas etapas</button>'}</div>
+      </div>
+      <div class="card"><h3>Sessões</h3>
+        <p style="font-size:13.5px">Esqueceu o sistema aberto em outro computador ou perdeu o celular? Encerre todas as outras sessões.
+          Por segurança, o sistema também sai sozinho depois de ${INATIVIDADE_MIN} minutos sem uso.</p>
+        <p style="font-size:13px;color:var(--mut)">Último acesso: ${u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('pt-BR') : '-'} ·
+          Senha alterada em: ${formatDate(u.senha_alterada_em)}</p>
+        <button class="btn" id="btSessoes">Encerrar sessões em outros aparelhos</button>
+      </div>
+      <div class="card" style="grid-column:1/-1"><h3>📋 Seus acessos</h3>
+        <p style="font-size:13.5px;margin-top:0">Perfil <b>${esc(Auth.dados()?.perfil || '')}</b>. O que você pode fazer em cada área do sistema:</p>
+        <div class="tw"><table><tr><th>Área</th><th>Nível</th><th>Consultar</th><th>Criar</th><th>Editar</th><th>Excluir</th><th>Aprovar</th></tr>
+        ${MODULOS.filter(m => !['painel', 'cadastros', 'tryout'].includes(m.k)).map(m => {
+          const nivel = nav.niveis?.[m.k];
+          const c = a => pode(nav, m.k, a) ? '<span style="color:var(--vd)">✓</span>' : '<span style="color:var(--mut)">—</span>';
+          return `<tr${nivel ? '' : ' style="opacity:.55"'}><td>${nivel ? `<a href="${moduloHref(m)}">${esc(m.n)}</a>` : esc(m.n)}</td>
+            <td>${nivel ? esc(NIVEIS[nivel] || nivel) : 'Sem acesso'}</td><td>${c('consultar')}</td><td>${c('criar')}</td><td>${c('editar')}</td><td>${c('deletar')}</td><td>${c('aprovar')}</td></tr>`;
+        }).join('')}</table></div>
+        <p style="font-size:12.5px;color:var(--mut);margin-bottom:0">Precisa de mais acesso? Fale com o responsável da sua pasta ou com o Administrador (TI).</p></div>
+      <div class="card"><h3>Seus últimos acessos</h3>
+        <p style="font-size:13px;color:var(--mut)">Se aparecer algo que não foi você, troque a senha e avise o administrador.</p>
+        <div class="tw"><table><tr><th>Quando</th><th>Resultado</th><th>Aparelho</th></tr>
+        ${info.acessos.map(a => `<tr${a.sucesso ? '' : ' class="dev"'}><td style="white-space:nowrap">${new Date(a.data.replace(' ', 'T') + 'Z').toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</td>
+          <td>${a.sucesso ? '✓ Entrou' : '✗ ' + esc(a.motivo || 'falhou')}</td><td><small>${esc(a.ip || '')} · ${esc(navegador(a.agente))}</small></td></tr>`).join('')}</table></div>
+      </div>
+    </div>`;
+  ligarSenha();
+  document.getElementById('bt2faOn')?.addEventListener('click', iniciar2fa);
+  document.getElementById('bt2faOff')?.addEventListener('click', async () => {
+    const senha = prompt('Para desativar, confirme sua senha:');
+    if (!senha) return;
+    try { const r = await api('/auth/2fa/desativar', { method: 'POST', body: { senha } }); showToast('✓ ' + r.msg); carregar(); }
+    catch (e) { showToast('❌ ' + e.message); }
+  });
+  document.getElementById('btSessoes').addEventListener('click', async () => {
+    try { const r = await api('/auth/encerrar-sessoes', { method: 'POST' }); Auth.salvar(r.access_token); showToast('✓ ' + r.msg); }
+    catch (e) { showToast('❌ ' + e.message); }
+  });
+}
+
+function navegador(ua) {
+  ua = ua || '';
+  const so = /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iPhone' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'Mac' : '';
+  const nav = /Edg\//.test(ua) ? 'Edge' : /Chrome\//.test(ua) ? 'Chrome' : /Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'navegador';
+  return [nav, so].filter(Boolean).join(' / ');
+}
+
+function ligarSenha() {
+  const nova = document.getElementById('sNova'), barra = document.getElementById('forcaBarra');
+  nova.addEventListener('input', () => {
+    const p = forcaSenha(nova.value);
+    barra.style.width = `${p * 20}%`;
+    barra.style.background = p <= 2 ? 'var(--red)' : p === 3 ? '#e0a100' : 'var(--vd)';
+  });
+  document.getElementById('fSenha').addEventListener('submit', async e => {
+    e.preventDefault();
+    const atual = document.getElementById('sAtual').value, n = nova.value;
+    if (n !== document.getElementById('sConf').value) { showToast('❌ As senhas novas não conferem'); return; }
+    try {
+      const r = await api('/auth/senha', { method: 'POST', body: { atual, nova: n } });
+      Auth.salvar(r.access_token);
+      showToast('✓ ' + r.msg);
+      if (OBRIGATORIO) setTimeout(() => { location.href = 'dashboard.html'; }, 900); else e.target.reset();
+    } catch (err) { showToast('❌ ' + err.message); }
+  });
+}
+
+async function iniciar2fa() {
+  let r;
+  try { r = await api('/auth/2fa/iniciar', { method: 'POST' }); } catch (e) { showToast('❌ ' + e.message); return; }
+  const box = abrirModal(`<h2>Ativar verificação em duas etapas</h2>
+    <ol style="font-size:14px;line-height:1.7;padding-left:20px">
+      <li>Instale no celular o <b>Google Authenticator</b> ou o <b>Microsoft Authenticator</b> (gratuitos).</li>
+      <li>No celular, ${/Android|iPhone|iPad/.test(navigator.userAgent) ? `toque em <a href="${esc(r.uri)}">adicionar ao autenticador</a> ou ` : ''}escolha
+        <i>"Inserir chave de configuração"</i> e digite a chave abaixo (tipo: baseada em tempo):</li></ol>
+    <div class="segredo">${esc(r.segredo.match(/.{1,4}/g).join(' '))}</div>
+    <p style="font-size:13px;color:var(--mut)">Conta: Intranet AD Belém · guarde esta chave em local seguro; ela não será mostrada de novo.</p>
+    <form id="f2fa"><label class="l" for="c2fa">3. Digite o código de 6 números que aparece no aplicativo</label>
+      <input id="c2fa" inputmode="numeric" maxlength="7" required placeholder="000 000" autocomplete="one-time-code">
+      <div class="acoes-form"><button class="btn pri">Ativar</button><button type="button" class="btn" onclick="fecharModal()">Cancelar</button></div></form>`);
+  box.querySelector('#f2fa').addEventListener('submit', async e => {
+    e.preventDefault();
+    try { const x = await api('/auth/2fa/ativar', { method: 'POST', body: { codigo: box.querySelector('#c2fa').value } }); fecharModal(); showToast('✓ ' + x.msg); carregar(); }
+    catch (err) { showToast('❌ ' + err.message); }
+  });
+}
+
+carregar();
+</script>
+</body>
+</html>

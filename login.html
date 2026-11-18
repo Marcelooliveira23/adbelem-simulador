@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Intranet AD Belém - Login</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<link rel="apple-touch-icon" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<meta name="apple-mobile-web-app-title" content="AD Belém">
+<style>
+:root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ln:#e5e7eb;--red:#c0392b}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);background:linear-gradient(160deg,#333 0%,#4a2a2c 100%)}
+button,input,select,textarea{font:inherit}
+[hidden]{display:none!important}
+
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lbox{background:#fff;border-radius:14px;max-width:520px;width:100%;padding:26px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.lbox .header{text-align:center;margin-bottom:20px}
+.lbox img.logo{display:block;margin:0 auto 6px;width:230px;max-width:70%;height:auto}
+.lbox h2{margin:8px 0 2px;text-align:center;font-size:18px;color:var(--bd)}
+.lbox p.s{margin:0 0 14px;text-align:center;color:var(--mut);font-size:13px}
+.form-group{margin-bottom:14px}
+label.l{display:block;font-size:12.5px;color:var(--mut);margin:0 0 4px;font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=time],select.f,textarea,input[type=search]{border:1px solid var(--cz);border-radius:8px;padding:9px 11px;background:#fff;max-width:100%;width:100%;font-size:14px;transition:all .2s}
+input[type=text]:focus,input[type=email]:focus,input[type=password]:focus,select.f:focus,textarea:focus{outline:none;border-color:var(--bd);box-shadow:0 0 0 3px rgba(148,58,63,.1)}
+.btn{background:#fff;border:1px solid var(--cz);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13.5px;transition:all .2s}
+.btn:hover:not(:disabled){border-color:var(--bd)}
+.btn.pri{background:var(--bd);color:#fff;border-color:var(--bd);font-weight:600;padding:11px 16px;width:100%;font-size:14px}
+.btn.pri:hover{background:var(--bd2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fake{background:#fff8dc;border:1px solid #f0dc82;border-radius:8px;padding:12px 14px;font-size:12.5px;margin-top:16px;color:#5c4b00;line-height:1.5}
+.fake strong{display:block;margin-bottom:6px;color:#6b5400}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.roles button{background:#fff;border:1px solid var(--cz);border-radius:9px;padding:9px 10px;text-align:left;cursor:pointer;font-size:13.5px;line-height:1.25;color:var(--tx)}
+.roles button:hover{border-color:var(--bd);background:#fbf3f3}
+.roles button small{display:block;color:var(--mut);font-size:11.5px}
+.fake .obs{margin:8px 0 0;font-size:11.5px}
+@media(max-width:480px){.roles{grid-template-columns:1fr}}
+.error-message{background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:10px 12px;border-radius:8px;margin-bottom:14px;font-size:13px;display:none}
+.error-message.show{display:block}
+
+@media(max-width:860px){
+ .lbox{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+ <div class="lbox">
+  <div class="header">
+   <img class="logo" src="img/logo.png" alt="Assembleia de Deus Ministério do Belém - São José dos Campos">
+   <h2>Intranet Administrativa</h2>
+   <p class="s">Acesso restrito a obreiros e colaboradores autorizados</p>
+  </div>
+
+  <div id="errorMessage" class="error-message"></div>
+
+  <form id="loginForm">
+   <div class="form-group">
+    <label class="l">Email</label>
+    <input type="email" id="email" required placeholder="seu@email.com" autocomplete="email">
+   </div>
+
+   <div class="form-group">
+    <label class="l">Senha</label>
+    <input type="password" id="password" required placeholder="Sua senha" autocomplete="current-password">
+   </div>
+
+   <div class="form-group" id="grupo2fa" hidden>
+    <label class="l" for="codigo2fa">Código do aplicativo autenticador</label>
+    <input type="text" id="codigo2fa" inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" placeholder="000 000" autocomplete="one-time-code">
+    <small style="color:var(--mut)">Abra o Google Authenticator (ou similar) e digite os 6 números de "Intranet AD Belém".</small>
+   </div>
+
+   <button type="submit" class="btn pri" id="submitBtn">Entrar</button>
+  </form>
+
+  <div class="fake">
+   <strong>👤 Ambiente de teste: toque em um perfil para entrar</strong>
+   <div class="roles">
+    <button type="button" data-email="pastor@adbelem.com" data-senha="senha123">Pastor Presidente<small>Consulta tudo, gera relatórios</small></button>
+    <button type="button" data-email="vice@adbelem.com" data-senha="senha123">Vice-Presidente<small>Mesmo acesso do Presidente</small></button>
+    <button type="button" data-email="tesoureiro@adbelem.com" data-senha="senha123">Tesoureiro<small>Financeiro e Banco do Brasil</small></button>
+    <button type="button" data-email="secretario@adbelem.com" data-senha="senha123">Secretário<small>Membros, cartas e contratos</small></button>
+    <button type="button" data-email="patrimonio@adbelem.com" data-senha="senha123">Patrimônio<small>Bens da sede e congregações</small></button>
+    <button type="button" data-email="admin@adbelem.com" data-senha="admin123">Administrador (TI)<small>Usuários, backup e tudo</small></button>
+   </div>
+   <p class="obs">Dados fictícios. Tudo o que for cadastrado aqui é só para teste.</p>
+  </div>
+ </div>
+</div>
+
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script>
+if (Auth.valido()) {
+ window.location.href = 'dashboard.html';
+}
+
+// Modo de teste desligado (uso real): esconde os perfis fictícios
+fetch(`${API_URL}/config`).then(r => r.json()).then(c => {
+ if (!c.modo_teste) document.querySelector('.fake').remove();
+}).catch(() => {});
+
+// Perfis de teste: um toque preenche e entra
+document.querySelectorAll('.roles button').forEach(b => b.addEventListener('click', () => {
+ document.getElementById('email').value = b.dataset.email;
+ document.getElementById('password').value = b.dataset.senha;
+ document.getElementById('loginForm').requestSubmit();
+}));
+
+const motivoSaida = new URLSearchParams(location.search).get('m');
+if (motivoSaida) { const el = document.getElementById('errorMessage'); el.textContent = 'ℹ️ ' + motivoSaida; el.classList.add('show'); }
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+ e.preventDefault();
+
+ const email = document.getElementById('email').value.trim();
+ const senha = document.getElementById('password').value;
+ const btn = document.getElementById('submitBtn');
+ const errorEl = document.getElementById('errorMessage');
+ const originalText = btn.textContent;
+
+ btn.disabled = true;
+ btn.textContent = 'Entrando...';
+ errorEl.classList.remove('show');
+
+ try {
+  let response;
+  try {
+   response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({email, senha, codigo: document.getElementById('codigo2fa').value || undefined})
+   });
+  } catch (err) {
+   throw new Error('Servidor indisponível. Verifique se o sistema está rodando.');
+  }
+
+  const data = await response.json().catch(() => ({}));
+  if (data.precisa_2fa) {
+   const g = document.getElementById('grupo2fa');
+   if (g.hidden) { g.hidden = false; document.getElementById('codigo2fa').focus(); }
+  }
+  if (!response.ok) {
+   throw new Error(data.erro || 'Email ou senha inválidos');
+  }
+
+  Auth.salvar(data.access_token);
+  window.location.href = data.trocar_senha ? 'conta.html?obrigatorio=1' : 'dashboard.html';
+ } catch (error) {
+  errorEl.textContent = '❌ ' + error.message;
+  errorEl.classList.add('show');
+  btn.disabled = false;
+  btn.textContent = originalText;
+ }
+});
+</script>
+
+</body>
+</html>

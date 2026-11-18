@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Conferir documento - AD Belém SJC</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<link rel="apple-touch-icon" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<meta name="apple-mobile-web-app-title" content="AD Belém">
+<link rel="stylesheet" href="css/app.css">
+<style>
+body{background:linear-gradient(160deg,#333 0%,#4a2a2c 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.box{background:#fff;border-radius:14px;max-width:480px;width:100%;padding:24px;text-align:center}
+.box img{width:200px;max-width:70%}
+.box input{width:100%;text-transform:uppercase;text-align:center;font-size:18px;letter-spacing:.1em;margin:10px 0}
+</style>
+</head>
+<body>
+<div class="box">
+ <img src="img/logo.png" alt="Assembleia de Deus Ministério do Belém - São José dos Campos">
+ <h2 style="color:var(--bd);margin:8px 0 4px">Conferir documento</h2>
+ <p style="color:var(--mut);font-size:13px;margin:0">Digite o código de autenticidade impresso no rodapé da carta ou declaração.</p>
+ <form id="f"><input id="cod" type="text" maxlength="12" required placeholder="7F3A9C21">
+ <button class="btn pri" style="width:100%">Conferir</button></form>
+ <div id="res" style="margin-top:12px;text-align:left"></div>
+</div>
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script>
+async function conferir(c) {
+ const res = document.getElementById('res');
+ try {
+  const r = await fetch(`${API_URL}/verificar/${encodeURIComponent(c)}`).then(x => x.json());
+  res.innerHTML = r.valido
+   ? `<div class="note" style="background:#e6f6ea;border-color:#b5e2c0">✓ <b>Documento autêntico.</b><br>${esc(r.tipo)} nº ${String(r.numero).padStart(4, '0')}/${r.ano}<br>Membro: ${esc(r.membro_nome)}<br>Emitido em ${formatDate(r.criado_em)}</div>`
+   : '<div class="note" style="background:#fbe8e8;border-color:#efc7c7">✗ Código não encontrado. Este documento não foi emitido pelo sistema da igreja.</div>';
+ } catch (e) { res.textContent = 'Não foi possível conferir agora. Tente novamente.'; }
+}
+document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); conferir(document.getElementById('cod').value.trim()); });
+const c = new URLSearchParams(location.search).get('c');
+if (c) { document.getElementById('cod').value = c; conferir(c); }
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tryout - Intranet AD Belém</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<link rel="stylesheet" href="css/app.css">
+<style>
+.cen{border:1px solid var(--ln);border-radius:12px;background:#fff;padding:14px;margin:10px 0}
+.cen.ok{border-left:5px solid var(--vd)} .cen.falhou{border-left:5px solid var(--red)} .cen.na{border-left:5px solid #aaa}
+.cen h4{margin:0 0 6px;font-size:15px} .cen ol{margin:6px 0 8px;padding-left:20px;font-size:13.5px;line-height:1.6}
+.cen .esp{font-size:13px;color:var(--mut)} .cen .bts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.prog{height:10px;background:var(--ln);border-radius:5px;overflow:hidden} .prog i{display:block;height:100%;background:var(--vd)}
+</style>
+</head>
+<body>
+<header></header>
+<div class="layout">
+ <nav id="nav"></nav>
+ <main id="main"><p class="vazio">Carregando...</p></main>
+</div>
+<div id="toast"></div>
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script src="js/crud.js"></script>
+<script>
+/* Roteiro do tryout: [id, módulo/ação exigidos, título, passos, resultado esperado] */
+const ROTEIRO = [
+  ['Acesso e segurança', [
+    ['seg-01', null, 'Entrar e sair do sistema', ['Entre com seu e-mail e senha', 'Navegue pelo menu', 'Clique em Sair'], 'Entra no Painel com o seu perfil; ao sair, volta para a tela de login.'],
+    ['seg-02', null, 'Trocar a senha', ['Abra "Minha conta" (canto superior)', 'Troque a senha por uma nova (8+ caracteres, letras e números)', 'Saia e entre com a nova senha'], 'Senhas fracas são recusadas; a nova senha funciona.'],
+    ['seg-03', null, 'Verificação em duas etapas (opcional)', ['Em "Minha conta", ative a verificação em duas etapas com o Google Authenticator', 'Saia e entre de novo'], 'O sistema pede o código de 6 números do aplicativo.'],
+    ['seg-04', null, 'Acesso pelo celular', ['Abra o link no celular', 'Entre e abra 2 ou 3 telas'], 'As telas se ajustam ao celular, o menu abre pelo botão ☰.'],
+    ['seg-05', null, 'Só vejo o que é da minha área', ['Observe o menu lateral', 'Tente abrir uma área que não é sua pelo endereço (ex.: financeiro.html)'], 'Áreas fora do seu perfil não aparecem ou mostram "sem acesso".'],
+  ]],
+  ['Tesouraria', [
+    ['fin-01', 'tesouraria.criar', 'Lançar receita e despesa', ['Financeiro › + Receita: dízimo de R$ 150,00 na conta "Caixa"', '+ Despesa: conta de luz com fornecedor e vencimento'], 'Os lançamentos aparecem na lista e os totais mudam.'],
+    ['fin-02', 'tesouraria.consultar', 'Emitir recibo', ['Na lista, clique em "🧾 Recibo" de uma receita', 'Imprima ou salve em PDF'], 'Recibo com número, valor por extenso e logo da igreja.'],
+    ['fin-03', 'tesouraria.criar', 'Contas a pagar e recorrentes', ['Contas a pagar › + Conta recorrente (água, dia 15)', 'Clique em "Gerar contas do mês"', 'Marque uma conta como paga'], 'A conta do mês aparece com vencimento; ao pagar, sai da lista.'],
+    ['fin-04', 'tesouraria.criar', 'Contas e transferências', ['Contas e saldos › cadastre "Caixa" e "Banco"', 'Transfira R$ 100 do caixa para o banco'], 'Os saldos das duas contas mudam; a transferência não conta como receita.'],
+    ['fin-05', 'tesouraria.consultar', 'Caixa do culto e acertos', ['Caixa diário: registre um culto com dois conferentes', 'Congregações (acertos): registre o acerto de uma congregação'], 'O caixa conferido gera receitas; a congregação sai da lista de pendentes.'],
+    ['fin-06', 'tesouraria.consultar', 'PIX do Banco do Brasil (simulado)', ['🏦 Banco do Brasil › Simular recebimento de um PIX sem mensagem'], 'Entra como oferta alçada "a classificar"; dá para reclassificar.'],
+    ['fin-07', 'tesouraria.aprovar', 'Orçamento', ['Orçamento › preencha o previsto de 3 contas e salve'], 'Mostra previsto x realizado com a barra de execução.'],
+    ['fin-08', 'tesouraria.aprovar', 'Fechamento do mês', ['Fechamento do mês › escolha o mês passado', 'Exporte para o contador e imprima', 'Feche o mês e tente lançar algo com data daquele mês'], 'Planilha baixa; depois de fechado, o sistema bloqueia o lançamento.'],
+    ['fin-09', 'compras.aprovar', 'Aprovar compra', ['Compras a aprovar › aprove um pedido da Secretaria'], 'O pedido fica aprovado e vira despesa a pagar.'],
+  ]],
+  ['Secretaria', [
+    ['sec-01', 'membros.criar', 'Cadastrar membro completo', ['Rol de membros › + Membro, preencha as seções', 'Adicione foto e um documento (📎)'], 'O membro aparece na lista com a congregação; CPF inválido é recusado.'],
+    ['sec-02', 'secretaria.criar', 'Emitir carta e carteirinha', ['Cartas e declarações › emita uma carta de recomendação', 'Carteirinhas › imprima a de um membro', 'Confira o código em "Conferir autenticidade"'], 'Carta numerada com código válido; carteirinha com foto.'],
+    ['sec-03', 'secretaria.criar', 'Visitante até virar membro', ['Visitantes › + Visitante', 'Mude a situação para "Contatado"', 'Clique em "Tornar membro"'], 'O visitante aparece no Rol de membros.'],
+    ['sec-04', 'secretaria.criar', 'Agenda com reserva de espaço', ['📅 Agenda › + Evento no "Templo principal" às 19h', 'Crie outro evento no mesmo espaço e horário'], 'O segundo evento mostra o aviso de conflito.'],
+    ['sec-05', 'secretaria.criar', 'Escala de serviço', ['Escalas › escale um porteiro para o próximo culto', 'Abra o evento na Agenda › Escala'], 'A pessoa aparece na escala do evento.'],
+    ['sec-06', 'secretaria.criar', 'Escola Dominical', ['Escola Dominical › Classes: cadastre uma classe', 'Chamada do domingo: lance presentes e oferta e salve', 'Relatório anual'], 'Os totais aparecem no relatório.'],
+    ['sec-07', 'secretaria.criar', 'Livro de registros e atas', ['Livro de registros › registre um batismo com livro/folha', 'Atas › escreva uma ata e imprima'], 'Registro listado; ata impressa com cabeçalho da igreja.'],
+    ['sec-08', 'secretaria.criar', 'Arquivo digital e alertas', ['Arquivo digital › guarde a foto de um documento com validade próxima', 'Veja a aba 🔔 Alertas'], 'O documento aparece nos alertas de vencimento.'],
+    ['sec-09', 'secretaria.consultar', 'Frequência dos cultos', ['Frequência dos cultos › registre o culto de domingo'], 'Média de público e decisões do mês aparecem.'],
+  ]],
+  ['Patrimônio', [
+    ['pat-01', 'patrimonio.criar', 'Cadastrar bem com ficha técnica', ['Bens › + Bem com valor, data de compra, vida útil e garantia'], 'O valor atual (depreciado) aparece na lista.'],
+    ['pat-02', 'patrimonio.editar', 'Movimentar bem', ['Bens › Movimentar: transfira um bem para uma congregação', 'Histórico do bem'], 'A unidade do bem muda e o histórico registra a transferência.'],
+    ['pat-03', 'patrimonio.criar', 'Inventário', ['Inventário › Abrir inventário', 'Marque os bens como encontrado / não encontrado', 'Conclua'], 'O inventário fica concluído com o resumo.'],
+    ['pat-04', 'patrimonio.criar', 'Almoxarifado', ['Almoxarifado › entrada de material', 'Saída para uma congregação maior que o estoque'], 'A saída acima do estoque é recusada.'],
+    ['pat-05', 'patrimonio.criar', 'Manutenção preventiva e espaços', ['Espaços › cadastre o "Salão social"', 'Manutenção preventiva › programe a limpeza do ar a cada 3 meses e registre como realizada'], 'A próxima data é recalculada sozinha.'],
+    ['pat-06', 'patrimonio.consultar', 'Etiquetas', ['Etiquetas › imprima as etiquetas de tombo'], 'Etiquetas com brasão, tombo e unidade.'],
+  ]],
+  ['Presidência e relatórios', [
+    ['pre-01', 'relatorios.consultar', 'Relatórios', ['Relatórios › gere o resumo executivo e o financeiro do mês', 'Imprima / salve em PDF'], 'Relatórios com logo e números coerentes com os lançamentos.'],
+    ['pre-02', 'admin.auditoria', 'Log e segurança', ['Administração › 🛡️ Segurança e Log de ações'], 'Mostra o checklist de segurança e quem fez cada ação.'],
+    ['pre-03', 'admin.pasta', 'Dar acesso na minha pasta', ['Administração › + Novo usuário com perfil auxiliar da sua pasta', 'Entre com ele em outro navegador'], 'O novo usuário é obrigado a trocar a senha e só vê a sua área.'],
+  ]],
+];
+
+let RES = {}, TODOS = [];
+const podeCen = req => !req || pode(PERMS, ...req.split('.'));
+
+async function carregar() {
+  PERMS = PERMS || await iniciarLayout('tryout');
+  window.PERMS = PERMS;
+  if (!PERMS) return;
+  let r = { resultados: [], todos: false };
+  try { r = await api('/tryout/resultados'); } catch (e) { showToast('❌ ' + e.message); }
+  const eu = Number(Auth.dados()?.sub);
+  RES = {}; r.resultados.filter(x => x.usuario_id === eu).forEach(x => { RES[x.cenario] = x; });
+  TODOS = r.resultados;
+  const meus = ROTEIRO.flatMap(([, cs]) => cs).filter(c => podeCen(c[1]));
+  const feitos = meus.filter(c => RES[c[0]]).length;
+  const cfg = await fetch(`${API_URL}/config`).then(x => x.json()).catch(() => ({}));
+  document.getElementById('main').innerHTML = `<div class="ph"><h1>🧪 Tryout · teste antes da produção</h1></div>
+    ${cfg.modo_teste === false ? '<div class="note">O sistema já está em produção. Este roteiro fica como referência.</div>' : ''}
+    <div class="note">Siga cada cenário como no dia a dia da igreja e marque o resultado. Se algo falhar, descreva o que aconteceu
+      (o que você fez, o que esperava e o que apareceu). Os dados do tryout são apagados antes da produção.</div>
+    <div class="card"><b>Seu progresso: ${feitos} de ${meus.length} cenários</b><div class="prog" style="margin-top:8px"><i style="width:${meus.length ? 100 * feitos / meus.length : 0}%"></i></div></div>
+    ${r.todos ? '<div class="tabs" id="abasT"></div>' : ''}<div id="corpoT"></div>`;
+  const meuRoteiro = el => {
+    el.innerHTML = ROTEIRO.map(([grupo, cs]) => {
+      const vis = cs.filter(c => podeCen(c[1]));
+      return vis.length ? `<h2 style="font-size:16px;color:var(--bd);margin:18px 0 4px">${esc(grupo)}</h2>${vis.map(cenarioHTML).join('')}` : '';
+    }).join('');
+  };
+  if (r.todos) montarAbas(document.getElementById('abasT'), [{ k: 'meu', n: 'Meu roteiro' }, { k: 'res', n: 'Resultado geral' }],
+    k => (k === 'meu' ? meuRoteiro : resumoGeral)(document.getElementById('corpoT')));
+  else meuRoteiro(document.getElementById('corpoT'));
+}
+
+function cenarioHTML([id, , titulo, passos, esperado]) {
+  const r = RES[id];
+  return `<div class="cen ${r ? r.status : ''}" id="c-${id}"><h4>${esc(titulo)} <small style="color:var(--mut);font-weight:400">${id}</small>
+      ${r ? `<span class="badge ${r.status === 'ok' ? 'b-ok' : r.status === 'falhou' ? 'b-dev' : ''}">${{ ok: '✓ Funcionou', falhou: '✗ Falhou', na: 'Não se aplica' }[r.status]}</span>` : ''}</h4>
+    <ol>${passos.map(p => `<li>${esc(p)}</li>`).join('')}</ol><div class="esp">Esperado: ${esc(esperado)}</div>
+    ${r?.comentario ? `<div class="esp" style="color:var(--tx)">💬 ${esc(r.comentario)}</div>` : ''}
+    <div class="bts"><button class="btn sm ok" onclick="marcar('${id}','ok')">✓ Funcionou</button>
+      <button class="btn sm no" onclick="marcar('${id}','falhou')">✗ Falhou</button><button class="btn sm" onclick="marcar('${id}','na')">Não se aplica</button></div></div>`;
+}
+
+async function marcar(id, status) {
+  let comentario = RES[id]?.comentario || '';
+  if (status === 'falhou') {
+    comentario = prompt('Descreva o que aconteceu (o que fez, o que esperava, o que apareceu):', comentario) || '';
+    if (!comentario.trim()) return;
+  } else if (status === 'ok') {
+    comentario = prompt('Algum comentário ou sugestão? (opcional)', comentario) ?? comentario;
+  }
+  try {
+    await api('/tryout/resultados', { method: 'POST', body: { cenario: id, status, comentario } });
+    const y = window.scrollY; await carregar(); window.scrollTo(0, y);
+  } catch (e) { showToast('❌ ' + e.message); }
+}
+
+function resumoGeral(el) {
+  const todos = ROTEIRO.flatMap(([g, cs]) => cs.map(c => [g, ...c]));
+  const testadores = [...new Set(TODOS.map(r => r.usuario_nome))];
+  const falhas = TODOS.filter(r => r.status === 'falhou');
+  const ok = TODOS.filter(r => r.status === 'ok').length;
+  el.innerHTML = `<div class="kpis"><div class="kpi"><b>${testadores.length}</b><span>Testadores</span></div>
+      <div class="kpi"><b>${TODOS.length}</b><span>Testes registrados</span></div>
+      <div class="kpi" style="border-left-color:var(--vd)"><b>${ok}</b><span>Funcionaram</span></div>
+      <div class="kpi" style="border-left-color:var(--red)"><b>${falhas.length}</b><span>Falharam</span></div></div>
+    <div class="card"><h3>Falhas relatadas</h3>${falhas.length ? `<div class="tw"><table><tr><th>Cenário</th><th>Testador</th><th>O que aconteceu</th><th>Quando</th></tr>
+      ${falhas.map(f => `<tr class="dev"><td>${esc(f.cenario)} · ${esc(todos.find(t => t[1] === f.cenario)?.[3] || '')}</td><td>${esc(f.usuario_nome)}<br><small>${esc(f.perfil || '')}</small></td>
+        <td>${esc(f.comentario || '')}</td><td>${formatDate(f.data)}</td></tr>`).join('')}</table></div>` : '<p class="vazio">Nenhuma falha relatada. 🙌</p>'}</div>
+    <div class="card"><h3>Cobertura por cenário</h3><div class="tw"><table><tr><th>Área</th><th>Cenário</th><th>✓</th><th>✗</th><th>N/A</th></tr>
+      ${todos.map(t => { const rs = TODOS.filter(r => r.cenario === t[1]); const n = s => rs.filter(r => r.status === s).length;
+        return `<tr class="${n('falhou') ? 'dev' : ''}"><td>${esc(t[0])}</td><td>${esc(t[3])} <small style="color:var(--mut)">${t[1]}</small></td><td>${n('ok') || ''}</td><td>${n('falhou') || ''}</td><td>${n('na') || ''}</td></tr>`; }).join('')}</table></div></div>`;
+}
+
+let PERMS = null;
+carregar();
+</script>
+</body>
+</html>

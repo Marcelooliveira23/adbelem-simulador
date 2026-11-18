@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadastros - Intranet AD Belém</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<link rel="apple-touch-icon" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<meta name="apple-mobile-web-app-title" content="AD Belém">
+<link rel="stylesheet" href="css/app.css">
+<style>
+.cad-grupo{margin:18px 0 6px;font-size:15px;color:var(--bd);text-transform:uppercase;letter-spacing:.04em}
+.cad{display:flex;gap:12px;align-items:flex-start;padding:14px;border:1px solid var(--ln);border-radius:12px;background:#fff;
+  text-decoration:none;color:inherit;transition:border-color .15s, box-shadow .15s;min-height:84px}
+.cad:hover,.cad:focus-visible{border-color:var(--bd);box-shadow:0 2px 10px rgba(0,0,0,.06);outline:none}
+.cad .ic{font-size:24px;line-height:1;flex:none;width:32px;text-align:center}
+.cad b{display:block;font-size:14.5px;margin-bottom:3px}
+.cad small{color:var(--mut);font-size:12.5px;line-height:1.4}
+</style>
+</head>
+<body>
+<header></header>
+<div class="layout">
+ <nav id="nav"></nav>
+ <main id="main"><p class="vazio">Carregando...</p></main>
+</div>
+<div id="toast"></div>
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script src="js/crud.js"></script>
+<script src="js/importador.js"></script>
+<script>
+/* Central de cadastros: atalho para cada cadastro de cada setor, conforme o perfil. [modulo, ação exigida] */
+const CADASTROS = [
+  ['Tesouraria', [
+    ['💰', 'Lançamentos (receitas e despesas)', 'Entradas e saídas do dia, com conta do plano, fornecedor e recibo', 'financeiro.html#aba=todos', 'tesouraria', 'consultar'],
+    ['📅', 'Contas a pagar e recorrentes', 'Água, luz, aluguel, prebendas: vencimentos e geração mensal', 'financeiro.html#aba=pagar', 'tesouraria', 'consultar'],
+    ['💵', 'Contas e saldos', 'Caixa e contas bancárias com saldo, e transferências entre elas', 'financeiro.html#aba=saldos', 'tesouraria', 'consultar'],
+    ['📈', 'Orçamento anual', 'Previsto x realizado por conta do plano', 'financeiro.html#aba=orc', 'tesouraria', 'consultar'],
+    ['👔', 'Funcionários e prestadores', 'Funcionários, temporários, autônomos; pagamentos, serviços extras e folha', 'financeiro.html#aba=func', 'tesouraria', 'consultar'],
+    ['🏢', 'Fornecedores', 'Empresas e prestadores de serviço, com CNPJ, contato e PIX', 'financeiro.html#aba=forn', 'tesouraria', 'consultar'],
+    ['🗂️', 'Plano de contas', 'Contas de receita (3.x) e despesa (4.x) com código contábil', 'financeiro.html#aba=plano', 'tesouraria', 'consultar'],
+    ['⛪', 'Acertos das congregações', 'Recebimento de dízimos e ofertas das congregações', 'financeiro.html#aba=acertos', 'tesouraria', 'consultar'],
+    ['🧮', 'Caixa diário (cultos)', 'Contagem do culto com dupla conferência', 'financeiro.html#aba=caixa', 'tesouraria', 'consultar'],
+    ['🎯', 'Campanhas e fundos', 'Metas, prazos e fundos restritos', 'financeiro.html#aba=camp', 'tesouraria', 'consultar'],
+    ['🏦', 'Contas do Banco do Brasil', 'Contas monitoradas e PIX recebidos', 'financeiro.html#aba=banco', 'tesouraria', 'consultar'],
+    ['📊', 'Fechamento do mês', 'Demonstrativo por conta e bloqueio do período', 'financeiro.html#aba=fech', 'tesouraria', 'consultar'],
+  ]],
+  ['Secretaria', [
+    ['👥', 'Membros', 'Rol completo: dados pessoais, vida eclesiástica, documentos e foto', 'membros.html', 'membros', 'consultar'],
+    ['📅', 'Agenda e reserva de espaços', 'Cultos, reuniões e eventos, com aviso de conflito de sala', 'secretaria.html#aba=agenda', 'secretaria', 'consultar'],
+    ['🧑‍🤝‍🧑', 'Escalas de serviço', 'Porteiros, recepção, som, louvor, diáconos', 'secretaria.html#aba=escalas', 'secretaria', 'consultar'],
+    ['🙋', 'Visitantes', 'Registro da visita e acompanhamento até se tornar membro', 'secretaria.html#aba=vis', 'secretaria', 'consultar'],
+    ['🎶', 'Departamentos e ministérios', 'Mocidade, irmãs, crianças, coral, comissões…', 'secretaria.html#aba=dep', 'secretaria', 'consultar'],
+    ['📖', 'Escola Dominical', 'Classes, professores e chamada do domingo', 'secretaria.html#aba=ebd', 'secretaria', 'consultar'],
+    ['📊', 'Frequência dos cultos', 'Público, visitantes e decisões por culto', 'secretaria.html#aba=freq', 'secretaria', 'consultar'],
+    ['📜', 'Livro de registros', 'Batismos, casamentos, apresentações e consagrações', 'secretaria.html#aba=reg', 'secretaria', 'consultar'],
+    ['🖋️', 'Atas', 'Assembleias e reuniões, com impressão', 'secretaria.html#aba=atas', 'secretaria', 'consultar'],
+    ['⛪', 'Congregações', 'Sede e congregações, dirigentes e periodicidade do acerto', 'secretaria.html#aba=cong', 'secretaria', 'consultar'],
+    ['📄', 'Contratos e aluguéis', 'Vigência, valores e alerta de vencimento', 'secretaria.html#aba=cont', 'secretaria', 'consultar'],
+    ['📎', 'Arquivo digital', 'Atas, estatuto, escrituras, alvarás, AVCB, seguros', 'secretaria.html#aba=arq', 'secretaria', 'consultar'],
+    ['✉️', 'Modelos de cartas', 'Textos das cartas e declarações', 'secretaria.html#aba=modelos', 'secretaria', 'consultar'],
+  ]],
+  ['Patrimônio', [
+    ['🏛️', 'Bens patrimoniais', 'Tombo, unidade, local, valor, estado e responsável', 'patrimonio.html#aba=bens', 'patrimonio', 'consultar'],
+    ['🔁', 'Movimentações de bens', 'Transferência, manutenção, empréstimo, retorno e baixa', 'patrimonio.html#aba=mov', 'patrimonio', 'consultar'],
+    ['📋', 'Inventário', 'Conferência física dos bens, item a item', 'patrimonio.html#aba=inv', 'patrimonio', 'consultar'],
+    ['🛠️', 'Manutenção preventiva', 'Filtros, extintores, revisões: com aviso de vencimento', 'patrimonio.html#aba=prev', 'patrimonio', 'consultar'],
+    ['🚪', 'Espaços e ambientes', 'Templo, salões e salas usados na agenda', 'patrimonio.html#aba=esp', 'patrimonio', 'consultar'],
+    ['🏷️', 'Etiquetas de tombo', 'Impressão das etiquetas dos bens', 'patrimonio.html#aba=etq', 'patrimonio', 'consultar'],
+    ['📦', 'Materiais (almoxarifado)', 'Estoque geral e saída controlada para as congregações', 'patrimonio.html#aba=almox', 'patrimonio', 'consultar'],
+    ['🛒', 'Pedidos de compra', 'Pedido, aprovação pela Tesouraria e entrega', 'patrimonio.html#aba=compras', 'compras', 'consultar'],
+  ]],
+  ['Administração', [
+    ['🔑', 'Usuários e acessos', 'Contas, perfis e níveis de acesso por pasta', 'admin.html', 'admin', 'consultar'],
+    ['🛡️', 'Segurança', 'Checklist, acessos, log íntegro e backups', 'admin.html#aba=seg', 'admin', 'auditoria'],
+  ]],
+];
+
+(async () => {
+  window.PERMS = await iniciarLayout('cadastros');
+  if (!PERMS) return;
+  const podeImportar = ['membros', 'patrimonio', 'tesouraria'].some(m => pode(PERMS, m, 'criar'));
+  const grupos = CADASTROS.map(([nome, itens]) => [nome, itens.filter(i => pode(PERMS, i[4], i[5]))]).filter(([, i]) => i.length);
+  document.getElementById('main').innerHTML = `<div class="ph"><h1>Cadastros</h1></div>
+    <p style="margin:0;color:var(--mut);font-size:14px">Todos os cadastros que o seu perfil acessa, organizados por setor. Toque para abrir.</p>
+    ${podeImportar ? `<a class="cad" href="#importar" id="cadImportar" style="margin-top:14px;border-color:var(--bd)"><span class="ic" aria-hidden="true">⬆️</span>
+      <span><b>Importar cadastros de Excel ou de um sistema antigo</b><small>Membros, bens, fornecedores e funcionários: planilha (.xlsx/.csv), cópia do MySQL (.sql),
+      banco antigo (.db) ou conexão direta ao MySQL. O sistema não cadastra em dobro.</small></span></a>` : ''}
+    ${grupos.map(([nome, itens]) => `<h2 class="cad-grupo">${esc(nome)}</h2><div class="grid g3">
+      ${itens.map(([ic, t, d, href]) => `<a class="cad" href="${href}"><span class="ic" aria-hidden="true">${ic}</span><span><b>${esc(t)}</b><small>${esc(d)}</small></span></a>`).join('')}</div>`).join('')
+      || '<p class="vazio">Seu perfil não tem cadastros.</p>'}`;
+  document.getElementById('cadImportar')?.addEventListener('click', e => { e.preventDefault(); abrirImportador(null); });
+})();
+</script>
+</body>
+</html>

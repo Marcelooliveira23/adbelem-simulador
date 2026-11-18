@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel - Intranet AD Belém</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<link rel="apple-touch-icon" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<meta name="apple-mobile-web-app-title" content="AD Belém">
+<style>
+:root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ln:#e5e7eb;--red:#c0392b}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);background:var(--bg)}
+button,input,select,textarea{font:inherit}
+[hidden]{display:none!important}
+
+header{background:var(--gr);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:3px solid var(--go);position:sticky;top:0;z-index:20}
+header img{height:38px;border-radius:50%}
+header .t{font-weight:600;font-size:14px;line-height:1.15}
+header .t small{display:block;font-weight:400;opacity:.75;font-size:11.5px}
+header .sp{flex:1}
+header select{background:#4a4a4a;color:#fff;border:1px solid #666;border-radius:6px;padding:5px 6px;font-size:12.5px;max-width:190px}
+header .ham{display:none;background:none;border:0;color:#fff;font-size:24px;cursor:pointer;padding:0 4px}
+header .out{background:none;border:1px solid #777;color:#fff;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12.5px;transition:all .2s}
+header .out:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+
+.layout{display:flex;min-height:calc(100vh - 56px)}
+nav{width:230px;background:#fff;border-right:1px solid var(--ln);padding:10px 8px;flex-shrink:0;overflow-y:auto}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 11px;cursor:pointer;font-size:14px;color:var(--tx);margin-bottom:2px;transition:all .2s}
+nav button:hover{background:#f3eaea}
+nav button.on{background:var(--go);font-weight:600;color:var(--gr)}
+nav .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);padding:12px 11px 4px;font-weight:600}
+
+main{flex:1;padding:18px 20px;min-width:0;max-width:1200px;overflow-y:auto}
+.banner{background:#fff8dc;border:1px solid #f0dc82;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:12px;color:#5c4b00}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ph h1{font-size:21px;margin:0;color:var(--bd);font-weight:600}
+.badge{display:inline-block;font-size:11.5px;padding:3px 10px;border-radius:99px;background:#eee;color:#444;white-space:nowrap;font-weight:500}
+.b-C{background:#d6f0de;color:#0d5a2a}
+.b-V{background:#fff1b8;color:#6b5400}
+.b-E{background:#d6e8fb;color:#0b4a85}
+.b-P{background:#e8dcf5;color:#4b2a7a}
+.b-M{background:#dfe9d0;color:#2c4d0e}
+.b-D{background:#fde3d0;color:#7a3b0a}
+
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h3{margin:0 0 8px;font-size:15px;color:var(--tx);font-weight:600}
+.card p{margin:0;font-size:13px;color:var(--mut)}
+
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--ln);border-left:4px solid var(--bd);border-radius:10px;padding:10px 12px}
+.kpi b{display:block;font-size:20px;color:var(--bd);font-weight:700;margin-bottom:2px}
+.kpi span{font-size:12px;color:var(--mut)}
+
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;border-bottom:2px solid var(--ln)}
+.tabs button{background:none;border:0;padding:8px 12px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--mut);font-size:14px;transition:all .2s}
+.tabs button.on{color:var(--bd);border-bottom-color:var(--bd);font-weight:600}
+.tabs button:hover{color:var(--tx)}
+
+.btn{background:#fff;border:1px solid var(--cz);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13.5px;transition:all .2s}
+.btn:hover:not(:disabled){border-color:var(--bd)}
+.btn.pri{background:var(--bd);color:#fff;border-color:var(--bd);font-weight:600}
+.btn.pri:hover{background:var(--bd2)}
+.btn.gold{background:var(--go);border-color:var(--go);font-weight:600;color:var(--gr)}
+.btn.gold:hover{background:#e6b800}
+.btn.sm{padding:3px 9px;font-size:12.5px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{background:#f0e4e5;color:#5a2427;text-align:left;padding:7px 9px;white-space:nowrap;font-weight:600}
+td{padding:7px 9px;border-top:1px solid var(--ln);vertical-align:middle}
+tr:hover td{background:#fafafa}
+
+.perm-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.perm-table th{background:#f0e4e5;color:#5a2427;padding:7px 9px;text-align:left;font-weight:600}
+.perm-table td{padding:7px 9px;border-top:1px solid var(--ln)}
+.perm-table a{color:var(--bd);text-decoration:none}
+.perm-table a:hover{text-decoration:underline}
+.perm-table .ok{background:#d6f0de;color:#0d5a2a}
+.perm-table .no{background:#fbe8e8;color:#8a1f1f}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:14px;z-index:50}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.mbox h2{margin:0 0 8px;font-size:18px;color:var(--bd);font-weight:600}
+.close-btn{float:right;background:none;border:none;font-size:24px;cursor:pointer;color:var(--mut)}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:99px;font-size:13.5px;z-index:90;max-width:90vw;display:none}
+#toast.show{display:block}
+
+@media(max-width:860px){
+ header .ham{display:block}
+ header .t small{display:none}
+ nav{position:fixed;top:56px;bottom:0;left:0;z-index:30;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 18px rgba(0,0,0,.25)}
+ nav.open{transform:none}
+ main{padding:12px}
+ .kpis{grid-template-columns:repeat(2,1fr)}
+}
+
+@media(max-width:600px){
+ .ph{flex-direction:column;align-items:flex-start}
+ .kpis{grid-template-columns:1fr}
+ header select{max-width:100px;font-size:12px}
+ .perm-table{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="t">
+  <strong>🏛️ AD BELÉM</strong>
+  <small id="userInfo"></small>
+ </div>
+ <div class="sp"></div>
+ <select id="roleSelect" style="display:none">
+  <option value="">Selecionar módulo</option>
+ </select>
+ <button class="ham" id="toggleNav">☰</button>
+ <button class="out" id="logoutBtn">Sair</button>
+</header>
+
+<div class="layout">
+ <nav id="nav">
+  <div class="lab">Administração</div>
+  <button class="tab-btn on" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab-btn" data-tab="membros" style="display:none">👥 Membros</button>
+  <button class="tab-btn" data-tab="financeiro" style="display:none">💰 Financeiro</button>
+  <button class="tab-btn" data-tab="patrimonio" style="display:none">🏛️ Patrimônio</button>
+  <button class="tab-btn" data-tab="relatorios" style="display:none">📋 Relatórios</button>
+ </nav>
+
+ <main>
+  <!-- DASHBOARD TAB -->
+  <div id="dashboard" class="tab-content">
+   <div class="banner">
+    ℹ️ Bem-vindo à Intranet Administrativa da Assembleia de Deus do Belém.
+   </div>
+
+   <div class="ph">
+    <h1>Painel</h1>
+    <span class="badge" id="perfil-badge">Admin</span>
+   </div>
+
+   <div class="kpis" id="kpis-container">
+    <div class="kpi">
+     <b id="kpi-users">-</b>
+     <span>Usuários cadastrados</span>
+    </div>
+    <div class="kpi">
+     <b id="kpi-members">-</b>
+     <span>Membros na comunidade</span>
+    </div>
+    <div class="kpi">
+     <b id="kpi-caixa">-</b>
+     <span>Saldo em caixa</span>
+    </div>
+    <div class="kpi">
+     <b id="kpi-patrimonio">-</b>
+     <span>Itens patrimoniais</span>
+    </div>
+   </div>
+
+   <div class="card">
+    <h3>📌 Pendências</h3>
+    <div id="pendencias"><p>Carregando...</p></div>
+   </div>
+
+   <div class="card" id="cardAlertas" hidden>
+    <h3>🔔 Alertas: vencimentos e aniversários</h3>
+    <div id="alertas"></div>
+   </div>
+
+
+  </div>
+
+ </main>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script src="js/pg/arquivos.js"></script>
+<script>
+function preencherKpi(id, valor, formatar) {
+ const el = document.getElementById(id);
+ if (valor === null || valor === undefined) {
+  el.closest('.kpi').style.display = 'none';   // perfil sem acesso a este número
+ } else {
+  el.textContent = formatar ? formatar(valor) : valor;
+ }
+}
+
+function renderPermissoes(perms) {
+ const tbody = document.getElementById('permTableBody');
+ tbody.innerHTML = MODULOS.filter(m => !['painel', 'cadastros', 'tryout'].includes(m.k)).map(m => {
+  const nivel = perms.niveis[m.k];
+  const acesso = nivel
+   ? `<span class="ok">✓ ${NIVEIS[nivel]}</span>`
+   : '<span class="no">✗ Sem acesso</span>';
+  const situacao = m.href ? 'Disponível' : 'Em construção';
+  const nome = nivel ? `<a href="${moduloHref(m)}">${esc(m.n)}</a>` : esc(m.n);
+  return `<tr><td><strong>${nome}</strong></td><td>${acesso}</td><td>${situacao}</td></tr>`;
+ }).join('');
+}
+
+async function renderPendencias(k) {
+ let p = {};
+ try { p = await api('/pendencias'); } catch (e) { /* segue só com os números do resumo */ }
+ // PIX e depósitos do Banco do Brasil recebidos hoje (quem consulta a tesouraria)
+ if (pode(window.PERMS_PAINEL, 'tesouraria', 'consultar')) try {
+  const b = await api('/banco/movimentos?dias=1');
+  if (b.hoje.quantidade) {
+   document.getElementById('kpis-container').insertAdjacentHTML('beforeend',
+    `<div class="kpi" style="border-left-color:#00A040"><b>${formatMoney(b.hoje.total)}</b><span>${b.hoje.quantidade} PIX/depósito(s) recebidos hoje</span></div>`);
+  }
+ } catch (e) { /* perfil sem acesso à tesouraria */ }
+ const itens = [
+  [p.tesouraria, 'financeiro.html', 'lançamento(s) aguardando seu "de acordo"', '💰'],
+  [p.membros, 'membros.html', 'cadastro(s) de membro aguardando "de acordo"', '👥'],
+  [p.patrimonio, 'patrimonio.html', 'bem(ns) aguardando "de acordo"', '🏛️'],
+  [p.contratos_vencendo, 'secretaria.html', 'contrato(s) vencido(s) ou vencendo em 30 dias', '📄'],
+  [p.devolvidos, 'financeiro.html', 'lançamento(s) devolvido(s) pela sede para corrigir', '↩️'],
+  [p.acertos_pendentes, 'financeiro.html', 'congregação(ões) com acerto de contas pendente', '⛪'],
+  [p.acertos_a_receber, 'financeiro.html', 'acerto(s) de congregação a receber', '📥'],
+  [p.pix_a_classificar, 'financeiro.html', 'PIX/depósito(s) a classificar (sem pagador ou mensagem)', '🏦'],
+  [p.compras_a_aprovar, 'financeiro.html', 'pedido(s) de compra aguardando sua aprovação', '🛒'],
+  [p.compras_a_entregar, 'secretaria.html', 'compra(s) aprovada(s) aguardando entrega', '📦'],
+  [p.estoque_baixo, 'patrimonio.html', 'material(is) abaixo do estoque mínimo', '📉'],
+  [p.contas_vencidas, 'financeiro.html#aba=pagar', 'conta(s) a pagar vencida(s)', '⏰'],
+  [p.contas_vencendo, 'financeiro.html#aba=pagar', 'conta(s) a pagar vencendo em 7 dias', '📅'],
+  [p.mes_a_fechar && 1, 'financeiro.html#aba=fech', `mês aguardando fechamento (${(p.mes_a_fechar || '').split('-').reverse().join('/')})`, '📊'],
+  [p.visitantes_sem_contato, 'secretaria.html#aba=vis', 'visitante(s) ainda sem contato', '🙋'],
+  [p.inventarios_abertos, 'patrimonio.html#aba=inv', 'inventário(s) em andamento', '📋'],
+  [p.bens_emprestados, 'patrimonio.html#aba=bens', 'bem(ns) emprestado(s)', '🤝'],
+  [p.preventivas_vencidas, 'patrimonio.html#aba=prev', 'manutenção(ões) preventiva(s) vencida(s)', '🛠️'],
+  [p.garantias_seguros_vencendo, 'patrimonio.html#aba=bens', 'garantia(s) ou seguro(s) vencendo em 30 dias', '🛡️'],
+  [p.eventos_semana, 'secretaria.html#aba=agenda', 'evento(s) na agenda nos próximos 7 dias', '📅'],
+  [p.escalas_sem_confirmar, 'secretaria.html#aba=escalas', 'escala(s) da semana sem confirmação', '🧑‍🤝‍🧑'],
+  [k.despesas_pendentes, 'financeiro.html', 'despesa(s) pendente(s) de pagamento', '💸'],
+  [k.bens_manutencao, 'patrimonio.html', 'bem(ns) aguardando manutenção', '🔧'],
+ ].filter(([n]) => n);
+ document.getElementById('pendencias').innerHTML = itens.length
+  ? '<ul style="margin:0;padding-left:4px;list-style:none;font-size:13.5px;line-height:2">' +
+    itens.map(([n, href, txt, ic]) => `<li>${ic} <a href="${href}"><b>${n}</b> ${txt}</a></li>`).join('') + '</ul>'
+  : '<p>Nenhuma pendência no momento. 🙌</p>';
+}
+
+async function renderAlertas() {
+ try {
+  const { alertas } = await api('/alertas');
+  if (!alertas.length) return;
+  document.getElementById('alertas').innerHTML = tabelaAlertas(alertas.slice(0, 8)) +
+   (alertas.length > 8 ? `<p style="font-size:13px;margin:8px 0 0">+ ${alertas.length - 8} alerta(s)…</p>` : '');
+  document.getElementById('cardAlertas').hidden = false;
+ } catch (e) { /* sem alertas para este perfil */ }
+}
+
+async function loadDashboard() {
+ const perms = await iniciarLayout('painel');
+ if (!perms) return;
+ window.PERMS_PAINEL = perms;
+
+ const user = Auth.dados();
+ document.getElementById('perfil-badge').textContent = user.perfil;
+
+ try {
+  const resumo = await api('/dashboard/resumo');
+  const k = resumo.kpis;
+  preencherKpi('kpi-users', k.usuarios);
+  preencherKpi('kpi-members', k.membros);
+  preencherKpi('kpi-caixa', k.saldo, formatMoney);
+  preencherKpi('kpi-patrimonio', k.patrimonio);
+  renderPendencias(k);
+  renderAlertas();
+ } catch (error) {
+  console.error(error);
+  showToast('❌ ' + error.message);
+ }
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Relatórios - Intranet AD Belém</title>
+<link rel="icon" type="image/png" href="img/brasao.png">
+<link rel="apple-touch-icon" href="img/brasao.png">
+<meta name="theme-color" content="#333333">
+<meta name="apple-mobile-web-app-title" content="AD Belém">
+<style>
+:root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ln:#e5e7eb;--red:#c0392b}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);background:var(--bg)}
+button,input,select,textarea{font:inherit}
+
+header{background:var(--gr);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:3px solid var(--go);position:sticky;top:0;z-index:20}
+header .sp{flex:1}
+header .out{background:none;border:1px solid #777;color:#fff;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12.5px;transition:all .2s}
+header .out:hover{border-color:#fff;background:rgba(255,255,255,.1)}
+
+.layout{display:flex;min-height:calc(100vh - 56px)}
+nav{width:230px;background:#fff;border-right:1px solid var(--ln);padding:10px 8px;flex-shrink:0;overflow-y:auto}
+nav button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 11px;cursor:pointer;font-size:14px;color:var(--tx);margin-bottom:2px;transition:all .2s}
+nav button:hover{background:#f3eaea}
+nav button.on{background:var(--go);font-weight:600;color:var(--gr)}
+nav .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);padding:12px 11px 4px;font-weight:600}
+
+main{flex:1;padding:18px 20px;min-width:0;max-width:1400px;overflow-y:auto}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;justify-content:space-between}
+.ph h1{font-size:21px;margin:0;color:var(--bd);font-weight:600}
+
+.card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:14px;margin-bottom:14px}
+.card h3{margin:0 0 8px;font-size:15px;color:var(--tx);font-weight:600}
+
+.btn{background:#fff;border:1px solid var(--cz);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13.5px;transition:all .2s}
+.btn:hover:not(:disabled){border-color:var(--bd)}
+.btn.pri{background:var(--bd);color:#fff;border-color:var(--bd);font-weight:600}
+.btn.pri:hover{background:var(--bd2)}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--ln);border-left:4px solid var(--bd);border-radius:10px;padding:12px}
+.kpi b{display:block;font-size:18px;color:var(--bd);font-weight:700;margin-bottom:2px}
+.kpi span{font-size:12px;color:var(--mut)}
+.kpi.in{border-left-color:#00A040}
+.kpi.in b{color:#00A040}
+.kpi.out{border-left-color:#c0392b}
+.kpi.out b{color:#c0392b}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.search-box{flex:1;min-width:200px}
+.search-box input{width:100%;border:1px solid var(--cz);border-radius:8px;padding:6px 10px;font-size:13.5px}
+
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;border-bottom:2px solid var(--ln)}
+.tabs button{background:none;border:0;padding:8px 12px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--mut);font-size:14px;transition:all .2s}
+.tabs button.on{color:var(--bd);border-bottom-color:var(--bd);font-weight:600}
+
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{background:#f0e4e5;color:#5a2427;text-align:left;padding:7px 9px;white-space:nowrap;font-weight:600}
+td{padding:7px 9px;border-top:1px solid var(--ln);vertical-align:middle}
+tr:hover td{background:#fafafa}
+
+.chart-container{background:#fff;border:1px solid var(--ln);border-radius:12px;padding:14px;margin-bottom:14px}
+.chart-placeholder{height:300px;display:flex;align-items:center;justify-content:center;color:var(--mut);text-align:center;background:#fafafa;border-radius:8px}
+
+.badge{display:inline-block;font-size:11.5px;padding:3px 10px;border-radius:99px;background:#eee;color:#444;font-weight:500}
+
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#222;color:#fff;padding:9px 16px;border-radius:99px;font-size:13.5px;z-index:90;display:none}
+#toast.show{display:block}
+
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(500px,1fr));gap:12px;margin-bottom:14px}
+
+@media(max-width:860px){
+ nav{position:fixed;top:56px;bottom:0;left:0;z-index:30;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 18px rgba(0,0,0,.25)}
+ nav.open{transform:none}
+ main{padding:12px}
+ .kpis{grid-template-columns:repeat(2,1fr)}
+ .grid-2{grid-template-columns:1fr}
+}
+
+/* Cabeçalho que só aparece na impressão / PDF */
+.print-head{display:none}
+@media print{
+ header,nav,.toolbar,.tabs,.ph,#toast{display:none!important}
+ body{background:#fff}
+ .layout{display:block}
+ main{padding:0;max-width:none}
+ .print-head{display:block;text-align:center;margin-bottom:14px;border-bottom:3px solid var(--go);padding-bottom:10px}
+ .print-head img{height:70px}
+ .print-head h2{margin:6px 0 2px;color:var(--bd);font-size:18px}
+ .print-head p{margin:0;font-size:12px;color:#555}
+ .card,.kpi{break-inside:avoid;box-shadow:none}
+ .grid-2{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="t" style="color:#fff">
+  <strong>🏛️ AD BELÉM</strong>
+ </div>
+ <div class="sp"></div>
+ <button class="out" id="logoutBtn">Sair</button>
+</header>
+
+<div class="layout">
+ <nav id="nav">
+  <div class="lab">Administração</div>
+  <button class="tab-btn" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab-btn" data-tab="membros">👥 Membros</button>
+  <button class="tab-btn" data-tab="financeiro">💰 Financeiro</button>
+  <button class="tab-btn" data-tab="patrimonio">🏛️ Patrimônio</button>
+  <button class="tab-btn on" data-tab="relatorios">📋 Relatórios</button>
+ </nav>
+
+ <main>
+  <div id="relatorios" class="tab-content">
+   <div class="ph">
+    <h1>📋 Relatórios</h1>
+   </div>
+
+   <!-- TOOLBAR -->
+   <div class="toolbar">
+    <label style="font-size:12.5px;color:var(--mut)">📅 Período:</label>
+    <input type="date" id="dataInicio" style="border:1px solid var(--cz);border-radius:8px;padding:6px 10px;font-size:13.5px">
+    <span style="color:var(--mut)">até</span>
+    <input type="date" id="dataFim" style="border:1px solid var(--cz);border-radius:8px;padding:6px 10px;font-size:13.5px">
+    <button class="btn pri" id="gerarRelBtn">🔄 Gerar Relatório</button>
+    <button class="btn" id="imprimirRelBtn" type="button">🖨️ Imprimir / salvar PDF</button>
+   </div>
+
+   <div class="print-head">
+    <img src="img/logo.png" alt="Assembleia de Deus Ministério do Belém - São José dos Campos">
+    <h2 id="printTitulo">Relatório</h2>
+    <p id="printInfo"></p>
+   </div>
+
+   <!-- TABS -->
+   <div class="tabs">
+    <button class="tab-btn on" data-tab-rel="resumo">Resumo Executivo</button>
+    <button class="tab-btn" data-tab-rel="financeiro">Financeiro</button>
+    <button class="tab-btn" data-tab-rel="membros">Membros</button>
+    <button class="tab-btn" data-tab-rel="patrimonio">Patrimônio</button>
+   </div>
+
+   <!-- RESUMO EXECUTIVO -->
+   <div id="resumo-tab" class="tab-rel-content">
+    <div class="kpis">
+     <div class="kpi">
+      <b id="totalMembros">0</b>
+      <span>Total de Membros</span>
+     </div>
+     <div class="kpi in">
+      <b id="saldoFinanceiro">R$ 0,00</b>
+      <span>Saldo Financeiro</span>
+     </div>
+     <div class="kpi">
+      <b id="totalPatrimonio">R$ 0,00</b>
+      <span>Valor Patrimônio</span>
+     </div>
+     <div class="kpi out">
+      <b id="despesasTotal">R$ 0,00</b>
+      <span>Total Despesas</span>
+     </div>
+    </div>
+
+    <div class="card">
+     <h3>Atividades Recentes</h3>
+     <div class="tw">
+      <table id="atividadesTable">
+       <thead>
+        <tr>
+         <th>Data</th>
+         <th>Descrição</th>
+         <th>Módulo</th>
+        </tr>
+       </thead>
+       <tbody id="atividadesTableBody">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+
+   <!-- RELATÓRIO FINANCEIRO -->
+   <div id="financeiro-tab" class="tab-rel-content" style="display:none">
+    <div class="grid-2">
+     <div class="card">
+      <h3>Resumo de Receitas e Despesas</h3>
+      <table>
+       <tbody>
+        <tr>
+         <td><strong>Total Receitas</strong></td>
+         <td style="text-align:right;color:#00A040"><b id="rel_totalReceitas">R$ 0,00</b></td>
+        </tr>
+        <tr>
+         <td><strong>Total Despesas</strong></td>
+         <td style="text-align:right;color:#c0392b"><b id="rel_totalDespesas">R$ 0,00</b></td>
+        </tr>
+        <tr style="border-top:2px solid var(--go)">
+         <td><strong>Saldo</strong></td>
+         <td style="text-align:right"><b id="rel_saldo">R$ 0,00</b></td>
+        </tr>
+       </tbody>
+      </table>
+     </div>
+
+     <div class="card">
+      <h3>Receitas por Categoria</h3>
+      <div id="receitasCategorias">
+       <div class="chart-placeholder">Carregando...</div>
+      </div>
+     </div>
+    </div>
+
+    <div class="card">
+     <h3>Transações Detalhadas</h3>
+     <div class="tw">
+      <table id="transacoesRelatorioTable">
+       <thead>
+        <tr>
+         <th>Data</th>
+         <th>Descrição</th>
+         <th>Tipo</th>
+         <th>Categoria</th>
+         <th>Valor</th>
+        </tr>
+       </thead>
+       <tbody id="transacoesRelatorioBody">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+
+   <!-- RELATÓRIO DE MEMBROS -->
+   <div id="membros-tab" class="tab-rel-content" style="display:none">
+    <div class="kpis">
+     <div class="kpi">
+      <b id="rel_totalMembros">0</b>
+      <span>Total de Membros</span>
+     </div>
+     <div class="kpi">
+      <b id="rel_membrosCadastrados">0</b>
+      <span>Cadastrados este Mês</span>
+     </div>
+     <div class="kpi">
+      <b id="rel_membrosCongregacao">0</b>
+      <span>Visitantes</span>
+     </div>
+     <div class="kpi">
+      <b id="rel_membrosAtivos">0</b>
+      <span>Membros Ativos</span>
+     </div>
+    </div>
+
+    <div class="card">
+     <h3>Distribuição por Status</h3>
+     <div id="statusDistribuicao">
+      <div class="chart-placeholder">Carregando dados...</div>
+     </div>
+    </div>
+
+    <div class="card">
+     <h3>Últimos Membros Cadastrados</h3>
+     <div class="tw">
+      <table id="membrosRecentes">
+       <thead>
+        <tr>
+         <th>Nome</th>
+         <th>Email</th>
+         <th>Telefone</th>
+         <th>Status</th>
+         <th>Data</th>
+        </tr>
+       </thead>
+       <tbody id="membrosRecentesBody">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+
+   <!-- RELATÓRIO DE PATRIMÔNIO -->
+   <div id="patrimonio-tab" class="tab-rel-content" style="display:none">
+    <div class="kpis">
+     <div class="kpi">
+      <b id="rel_totalBens">0</b>
+      <span>Total de Bens</span>
+     </div>
+     <div class="kpi in">
+      <b id="rel_bensEmBom">0</b>
+      <span>Em Bom Estado</span>
+     </div>
+     <div class="kpi">
+      <b id="rel_valorTotalPatrimonio">R$ 0,00</b>
+      <span>Valor Total</span>
+     </div>
+     <div style="border-left-color:#ffa500" class="kpi">
+      <b id="rel_bensManutencao">0</b>
+      <span>Requerem Manutenção</span>
+     </div>
+    </div>
+
+    <div class="grid-2">
+     <div class="card">
+      <h3>Bens por Categoria</h3>
+      <div id="bensPorCategoria">
+       <div class="chart-placeholder">Carregando...</div>
+      </div>
+     </div>
+
+     <div class="card">
+      <h3>Bens por Status</h3>
+      <div id="bensPorStatus">
+       <div class="chart-placeholder">Carregando...</div>
+      </div>
+     </div>
+    </div>
+
+    <div class="card">
+     <h3>Bens Que Requerem Manutenção</h3>
+     <div class="tw">
+      <table id="bensManutencaoTable">
+       <thead>
+        <tr>
+         <th>Nome</th>
+         <th>Local</th>
+         <th>Valor</th>
+         <th>Observações</th>
+        </tr>
+       </thead>
+       <tbody id="bensManutencaoBody">
+       </tbody>
+      </table>
+     </div>
+    </div>
+   </div>
+  </div>
+ </main>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/sim.js"></script>
+<script src="js/common.js"></script>
+<script>
+function setDefaultDates() {
+ document.getElementById('dataInicio').value = hojeISO(0, true);
+ document.getElementById('dataFim').value = hojeISO();
+}
+
+function setText(id, valor) {
+ document.getElementById(id).textContent = valor;
+}
+
+/** Tabela simples rótulo → valor; mostra "Sem dados" quando a lista está vazia. */
+function tabelaResumo(elId, itens, chave, formatarValor) {
+ const el = document.getElementById(elId);
+ if (!itens || !itens.length) {
+  el.innerHTML = '<div class="chart-placeholder">Sem dados</div>';
+  return;
+ }
+ el.innerHTML = `<table><tbody>${itens.map(i => `
+  <tr>
+   <td>${esc(rotulo(i[chave]))}</td>
+   <td style="text-align:right"><b>${formatarValor(i.total)}</b></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+function linhas(tbodyId, itens, colunas, renderLinha) {
+ const tbody = document.getElementById(tbodyId);
+ tbody.innerHTML = itens && itens.length
+  ? itens.map(renderLinha).join('')
+  : `<tr><td colspan="${colunas}" style="text-align:center;color:var(--mut);padding:14px">Sem registros</td></tr>`;
+}
+
+async function carregarRelatorios(mostrarAviso = false) {
+ const dataInicio = document.getElementById('dataInicio').value;
+ const dataFim = document.getElementById('dataFim').value;
+ if (dataInicio && dataFim && dataInicio > dataFim) {
+  showToast('❌ A data inicial deve ser anterior à final');
+  return;
+ }
+
+ const params = new URLSearchParams();
+ if (dataInicio) params.append('data_inicio', dataInicio);
+ if (dataFim) params.append('data_fim', dataFim);
+
+ try {
+  const data = await api(`/relatorios?${params}`);
+
+  // RESUMO
+  setText('totalMembros', data.total_membros);
+  setText('saldoFinanceiro', formatMoney(data.saldo_financeiro));
+  setText('totalPatrimonio', formatMoney(data.valor_patrimonio));
+  setText('despesasTotal', formatMoney(data.total_despesas));
+  linhas('atividadesTableBody', data.atividades, 3, a => `
+   <tr><td>${formatDate(a.data)}</td><td>${esc(a.descricao)}</td><td><span class="badge">${esc(a.modulo)}</span></td></tr>`);
+
+  // FINANCEIRO
+  setText('rel_totalReceitas', formatMoney(data.total_receitas));
+  setText('rel_totalDespesas', formatMoney(data.total_despesas));
+  setText('rel_saldo', formatMoney(data.saldo_financeiro));
+  tabelaResumo('receitasCategorias', data.receitas_por_categoria, 'categoria', formatMoney);
+  linhas('transacoesRelatorioBody', data.transacoes, 5, t => `
+   <tr>
+    <td>${formatDate(t.data)}</td>
+    <td>${esc(t.descricao)}</td>
+    <td><span class="badge">${rotulo(t.tipo)}</span></td>
+    <td>${esc(rotulo(t.categoria))}</td>
+    <td style="color:${t.tipo === 'receita' ? '#00A040' : '#c0392b'}"><b>${formatMoney(t.valor)}</b></td>
+   </tr>`);
+
+  // MEMBROS
+  setText('rel_totalMembros', data.total_membros);
+  setText('rel_membrosCadastrados', data.membros_cadastrados_mes);
+  setText('rel_membrosCongregacao', data.membros_visitantes);
+  setText('rel_membrosAtivos', data.membros_ativos);
+  tabelaResumo('statusDistribuicao', data.membros_por_status, 'status', v => v);
+  linhas('membrosRecentesBody', data.membros_recentes, 5, m => `
+   <tr>
+    <td>${esc(m.nome)}</td>
+    <td>${esc(m.email || '-')}</td>
+    <td>${esc(m.telefone || '-')}</td>
+    <td><span class="badge">${rotulo(m.status)}</span></td>
+    <td>${formatDate(m.data_cadastro)}</td>
+   </tr>`);
+
+  // PATRIMÔNIO
+  setText('rel_totalBens', data.total_bens);
+  setText('rel_bensEmBom', data.bens_em_bom);
+  setText('rel_valorTotalPatrimonio', formatMoney(data.valor_patrimonio));
+  setText('rel_bensManutencao', data.bens_manutencao);
+  tabelaResumo('bensPorCategoria', data.bens_por_categoria, 'categoria', v => `${v} bem(ns)`);
+  tabelaResumo('bensPorStatus', data.bens_por_status, 'status', v => `${v} bem(ns)`);
+  linhas('bensManutencaoBody', data.bens_manutencao_list, 4, b => `
+   <tr>
+    <td>${esc(b.nome)}</td>
+    <td>${esc(b.local || '-')}</td>
+    <td>${formatMoney(b.valor)}</td>
+    <td>${esc(b.observacoes || '-')}</td>
+   </tr>`);
+
+  if (mostrarAviso) showToast('✓ Relatório atualizado');
+ } catch (error) {
+  showToast('❌ ' + error.message);
+ }
+}
+
+// Sub-abas (Resumo / Financeiro / Membros / Patrimônio)
+document.querySelectorAll('[data-tab-rel]').forEach(btn => {
+ btn.addEventListener('click', () => {
+  document.querySelectorAll('.tab-rel-content').forEach(tab => tab.style.display = 'none');
+  document.getElementById(btn.dataset.tabRel + '-tab').style.display = 'block';
+  document.querySelectorAll('[data-tab-rel]').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+ });
+});
+
+document.getElementById('gerarRelBtn').addEventListener('click', () => carregarRelatorios(true));
+
+// Imprime (ou salva em PDF pelo diálogo do navegador) a aba de relatório aberta
+document.getElementById('imprimirRelBtn').addEventListener('click', () => {
+ const aba = document.querySelector('[data-tab-rel].on');
+ const user = Auth.dados() || {};
+ const ini = document.getElementById('dataInicio').value;
+ const fim = document.getElementById('dataFim').value;
+ const periodo = ini || fim ? `Período: ${formatDate(ini)} a ${formatDate(fim)}` : 'Período: todos os lançamentos';
+ const agora = new Date().toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+ document.getElementById('printTitulo').textContent = 'Relatório: ' + (aba ? aba.textContent.trim() : 'Resumo');
+ document.getElementById('printInfo').textContent = `${periodo} · Gerado por ${user.nome || '-'} (${user.perfil || '-'}) em ${agora}`;
+ window.print();
+});
+
+(async () => {
+ const perms = await iniciarLayout('relatorios');
+ if (!perms) return;
+ setDefaultDates();
+ await carregarRelatorios();
+})();
+</script>
+
+</body>
+</html>
