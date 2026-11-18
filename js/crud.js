@@ -169,7 +169,7 @@ class Tabela {
       corpo.innerHTML = `<p class="vazio">${this.dados.length ? 'Nada encontrado com esses filtros.' : 'Nenhum registro ainda.'}</p>`;
       return;
     }
-    corpo.innerHTML = `<table><thead><tr>${this.colunas.map(c => `<th>${esc(c.label)}</th>`).join('')}<th></th></tr></thead><tbody>${
+    corpo.innerHTML = `<table class="resp"><thead><tr>${this.colunas.map(c => `<th>${esc(c.label)}</th>`).join('')}<th></th></tr></thead><tbody>${
       linhas.map(r => {
         const acoes = [
           aprovar && r.aprovacao === 'pendente' ? `<button class="btn sm ok" data-a="aprovado" data-id="${r.id}">De acordo</button> <button class="btn sm no" data-a="devolvido" data-id="${r.id}">Devolver</button>` : '',
@@ -178,7 +178,7 @@ class Tabela {
           excluir ? `<button class="btn sm no" data-x="${r.id}">Excluir</button>` : '',
         ].filter(Boolean).join(' ');
         const cls = r.aprovacao === 'pendente' ? 'pend' : r.aprovacao === 'devolvido' ? 'dev' : '';
-        return `<tr class="${cls}">${this.colunas.map((c, i) => `<td>${c.fmt ? c.fmt(r[c.k], r) : esc(r[c.k] ?? '-')}${i === 0 ? seloAprovacao(r) : ''}</td>`).join('')}<td class="acoes">${acoes}</td></tr>`;
+        return `<tr class="${cls}">${this.colunas.map((c, i) => `<td data-l="${esc(c.label)}">${c.fmt ? c.fmt(r[c.k], r) : esc(r[c.k] ?? '-')}${i === 0 ? seloAprovacao(r) : ''}</td>`).join('')}<td class="acoes">${acoes}</td></tr>`;
       }).join('')}</tbody></table>`;
     corpo.querySelectorAll('[data-e]').forEach(b => b.onclick = () => this.abrir(this.dados.find(r => r.id === Number(b.dataset.e))));
     corpo.querySelectorAll('[data-x]').forEach(b => b.onclick = () => this.excluir(Number(b.dataset.x)));

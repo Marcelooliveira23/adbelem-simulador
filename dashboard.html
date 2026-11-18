@@ -8,6 +8,7 @@
 <link rel="apple-touch-icon" href="img/brasao.png">
 <meta name="theme-color" content="#333333">
 <meta name="apple-mobile-web-app-title" content="AD Belém">
+<link rel="stylesheet" href="css/app.css">
 <style>
 :root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ln:#e5e7eb;--red:#c0392b}
 *{box-sizing:border-box}
@@ -167,6 +168,11 @@ tr:hover td{background:#fafafa}
     </div>
    </div>
 
+   <div class="card" id="cardAtalhos" hidden>
+    <h3>⚡ Ações rápidas</h3>
+    <div class="atalhos" id="atalhos"></div>
+   </div>
+
    <div class="card">
     <h3>📌 Pendências</h3>
     <div id="pendencias"><p>Carregando...</p></div>
@@ -248,9 +254,27 @@ async function renderPendencias(k) {
   [k.bens_manutencao, 'patrimonio.html', 'bem(ns) aguardando manutenção', '🔧'],
  ].filter(([n]) => n);
  document.getElementById('pendencias').innerHTML = itens.length
-  ? '<ul style="margin:0;padding-left:4px;list-style:none;font-size:13.5px;line-height:2">' +
-    itens.map(([n, href, txt, ic]) => `<li>${ic} <a href="${href}"><b>${n}</b> ${txt}</a></li>`).join('') + '</ul>'
+  ? '<ul class="pend-lista">' +
+    itens.map(([n, href, txt, ic]) => `<li><a href="${href}"><span aria-hidden="true">${ic}</span><b>${n}</b><span>${txt}</span><span class="seta" aria-hidden="true">›</span></a></li>`).join('') + '</ul>'
   : '<p>Nenhuma pendência no momento. 🙌</p>';
+}
+
+function renderAtalhos(perms) {
+ const A = [
+  ['tesouraria', 'criar', 'financeiro.html#aba=todos', '💰 Lançar receita ou despesa'],
+  ['tesouraria', 'criar', 'financeiro.html#aba=caixa', '🧮 Caixa do culto'],
+  ['tesouraria', 'consultar', 'financeiro.html#aba=pagar', '📅 Contas a pagar'],
+  ['membros', 'criar', 'membros.html', '👤 Cadastrar membro'],
+  ['secretaria', 'criar', 'secretaria.html#aba=docs', '✉️ Emitir carta'],
+  ['secretaria', 'criar', 'secretaria.html#aba=vis', '🙋 Registrar visitante'],
+  ['secretaria', 'consultar', 'secretaria.html#aba=agenda', '📅 Agenda'],
+  ['patrimonio', 'criar', 'patrimonio.html#aba=bens', '🏛️ Cadastrar bem'],
+  ['patrimonio', 'consultar', 'patrimonio.html#aba=etq', '🏷️ Etiquetas'],
+  ['relatorios', 'consultar', 'relatorios.html', '📊 Relatórios'],
+ ].filter(([m, a]) => pode(perms, m, a));
+ if (!A.length) return;
+ document.getElementById('atalhos').innerHTML = A.map(([, , href, t]) => `<a href="${href}">${t}</a>`).join('');
+ document.getElementById('cardAtalhos').hidden = false;
 }
 
 async function renderAlertas() {
@@ -270,6 +294,7 @@ async function loadDashboard() {
 
  const user = Auth.dados();
  document.getElementById('perfil-badge').textContent = user.perfil;
+ renderAtalhos(perms);
 
  try {
   const resumo = await api('/dashboard/resumo');

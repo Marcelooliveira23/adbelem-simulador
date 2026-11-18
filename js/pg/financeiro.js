@@ -54,7 +54,7 @@ async function alternarPagamento(id, status) {
   try { MEMBROS = (await api('/membros')).membros.filter(m => (m.aprovacao || 'aprovado') === 'aprovado'); } catch (e) { MEMBROS = []; }
   await Promise.all([carregarPlano(), carregarFornecedores(), carregarContasFin()]);
   const podeLancar = pode(PERMS, 'tesouraria', 'criar'), podeEditar = pode(PERMS, 'tesouraria', 'editar');
-  main.innerHTML = `<div class="ph"><h1>1 · Financeiro</h1><span class="sp"></span>
+  main.innerHTML = `<div class="ph"><h1>Financeiro</h1><span class="sp"></span>
       ${podeLancar ? '<button class="btn pri" onclick="novoLancamento(\'receita\')">+ Receita</button> <button class="btn" style="color:var(--red);border-color:var(--red)" onclick="novoLancamento(\'despesa\')">+ Despesa</button>' : ''}</div>
     ${u.escopo ? `<div class="note">Você lança só para a ${esc(nomeUnidade(u.escopo))}. A sede confere e dá o "de acordo"; só então o valor entra nos totais.</div>` : ''}
     ${podeLancar ? '' : '<div class="note">Seu perfil consulta a tesouraria, sem lançar.</div>'}

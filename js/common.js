@@ -167,15 +167,15 @@ const hojeExtenso = () => new Date().toLocaleDateString('pt-BR', { day: '2-digit
  * href: página já implementada; os demais abrem modulo.html (em construção).
  */
 const MODULOS = [
-  { k: 'painel', n: 'Painel', href: 'dashboard.html' },
-  { k: 'cadastros', n: 'Cadastros', href: 'cadastros.html' },
-  { k: 'tryout', n: '🧪 Tryout (testes)', href: 'tryout.html' },
-  { k: 'tesouraria', n: '1 · Financeiro', href: 'financeiro.html' },
-  { k: 'secretaria', n: '2 · Secretaria', href: 'secretaria.html' },
-  { k: 'membros', n: '2.1 · Rol de membros', href: 'membros.html' },
-  { k: 'patrimonio', n: '3 · Patrimônio', href: 'patrimonio.html' },
-  { k: 'relatorios', n: '4 · Relatórios', href: 'relatorios.html' },
-  { k: 'admin', n: '5 · Administração', href: 'admin.html' },
+  { k: 'painel', n: 'Painel', i: '🏠', href: 'dashboard.html' },
+  { k: 'cadastros', n: 'Cadastros', i: '🗂️', href: 'cadastros.html' },
+  { k: 'tesouraria', n: 'Financeiro', i: '💰', href: 'financeiro.html' },
+  { k: 'secretaria', n: 'Secretaria', i: '📋', href: 'secretaria.html' },
+  { k: 'membros', n: 'Rol de membros', i: '👥', href: 'membros.html' },
+  { k: 'patrimonio', n: 'Patrimônio', i: '🏛️', href: 'patrimonio.html' },
+  { k: 'relatorios', n: 'Relatórios', i: '📊', href: 'relatorios.html' },
+  { k: 'admin', n: 'Administração', i: '⚙️', href: 'admin.html' },
+  { k: 'tryout', n: 'Tryout (testes)', i: '🧪', href: 'tryout.html', separado: true },
 ];
 const NIVEIS = { C: 'Acesso completo', V: 'Somente consulta', E: 'Só a sua congregação' };
 
@@ -234,7 +234,7 @@ async function iniciarLayout(moduloAtual) {
   const permitidos = new Set(['painel', 'cadastros', 'tryout', 'conta', ...perms.modulos]);
   if (nav) {
     nav.innerHTML = MODULOS.filter(m => permitidos.has(m.k)).map(m =>
-      `<button type="button" class="${m.k === moduloAtual ? 'on' : ''}" data-href="${moduloHref(m)}">${esc(m.n)}</button>`
+      `${m.separado ? '<hr class="sep">' : ''}<button type="button" class="${m.k === moduloAtual ? 'on' : ''}" data-href="${moduloHref(m)}"${m.k === moduloAtual ? ' aria-current="page"' : ''}><span class="ic" aria-hidden="true">${m.i || ''}</span>${esc(m.n)}</button>`
     ).join('') + `<div class="lab">Perfil: ${esc(user.perfil)}</div>`;
     nav.querySelectorAll('button[data-href]').forEach(btn => {
       btn.addEventListener('click', () => {

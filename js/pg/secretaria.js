@@ -212,7 +212,7 @@ function abaVerificar(el) {
   if (!PERMS) return;
   await carregarUnidades();
   try { MEMBROS = (await api('/membros')).membros.filter(m => (m.aprovacao || 'aprovado') === 'aprovado'); } catch (e) { MEMBROS = []; }
-  main.innerHTML = '<div class="ph"><h1>2 · Secretaria</h1></div><div class="tabs" id="abas"></div><div id="conteudo"></div>';
+  main.innerHTML = '<div class="ph"><h1>Secretaria</h1></div><div class="tabs" id="abas"></div><div id="conteudo"></div>';
   const el = document.getElementById('conteudo');
   montarAbas(document.getElementById('abas'), [
     { k: 'docs', n: 'Cartas e declarações' }, { k: 'cart', n: 'Carteirinhas' }, { k: 'agenda', n: '📅 Agenda' }, { k: 'escalas', n: 'Escalas' }, { k: 'vis', n: 'Visitantes' }, { k: 'ebd', n: 'Escola Dominical' }, { k: 'freq', n: 'Frequência dos cultos' },

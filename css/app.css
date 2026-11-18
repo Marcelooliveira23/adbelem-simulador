@@ -1,5 +1,5 @@
 /* Intranet AD Belém SJC: estilos compartilhados (paleta do brasão, layout do protótipo aprovado) */
-:root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#6b7280;--ln:#e5e7eb;--red:#c0392b}
+:root{--bd:#943A3F;--bd2:#7a2f33;--gr:#333;--go:#F5C000;--cz:#D1D3D4;--az:#0095FF;--vd:#00A040;--bg:#f3f4f6;--card:#fff;--tx:#1f2328;--mut:#5b6270;--ln:#e5e7eb;--red:#c0392b}
 *{box-sizing:border-box}
 html{color-scheme:light}
 body{margin:0;font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tx);background:var(--bg)}
@@ -112,4 +112,38 @@ label.l{display:block;font-size:12.5px;color:var(--mut);margin:8px 0 2px}
  #modal{position:static;background:none;padding:0}
  .mbox{box-shadow:none;max-height:none;overflow:visible;padding:0;max-width:none}
  .layout.modal-aberto main{display:none}
+}
+
+/* v1.5 layout */
+nav button{display:flex;align-items:center;gap:9px}
+nav button .ic{display:inline-block;width:22px;margin-right:9px;text-align:center;font-size:16px;flex:none}
+nav button.on{font-weight:600}
+nav hr.sep{border:0;border-top:1px solid var(--ln);margin:10px 6px}
+:focus-visible{outline:3px solid var(--go);outline-offset:2px}
+button:focus:not(:focus-visible){outline:none}
+.pend-lista{list-style:none;margin:0;padding:0}
+.pend-lista li a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--tx);font-size:14px}
+.pend-lista li a:hover{background:#f7efe9}
+.pend-lista li a b{min-width:28px;text-align:center;background:var(--bd);color:#fff;border-radius:12px;padding:1px 8px;font-size:12.5px}
+.pend-lista li a .seta{margin-left:auto;color:var(--mut)}
+.atalhos{display:flex;flex-wrap:wrap;gap:8px}
+.atalhos a{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:1px solid var(--ln);border-radius:10px;background:#fff;
+  text-decoration:none;color:var(--tx);font-size:14px}
+.atalhos a:hover{border-color:var(--bd);background:#fbf6f6}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:640px){
+  main{padding:14px 12px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .row>input[type=search],.row>.t-busca{grid-column:1/-1}
+  .row>*{min-width:0;width:100%}
+  table.resp thead{display:none}
+  table.resp,table.resp tbody,table.resp tr,table.resp td{display:block;width:100%}
+  table.resp tr{background:#fff;border:1px solid var(--ln);border-radius:10px;margin-bottom:10px;padding:6px 10px}
+  table.resp tr.pend{border-left:4px solid var(--go)} table.resp tr.dev{border-left:4px solid var(--red)}
+  table.resp td{border:0;padding:4px 0;display:flex;gap:10px;justify-content:space-between;text-align:right}
+  table.resp td::before{content:attr(data-l);color:var(--mut);font-size:12.5px;text-align:left;flex:none;max-width:45%}
+  table.resp td:first-child{font-size:15px;text-align:left;display:block}
+  table.resp td:first-child::before{display:none}
+  table.resp td.acoes{justify-content:flex-start;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid var(--ln);margin-top:4px}
+  table.resp td.acoes::before{display:none}
 }

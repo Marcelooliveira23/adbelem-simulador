@@ -9,7 +9,7 @@ const FUNCOES = ['Membro', 'Cooperador(a)', 'Obreiro', 'Diácono', 'Diaconisa', 
   if (!PERMS) return;
   const u = await carregarUnidades();
   try { (await api('/funcionarios/vinculos')).vinculos.forEach(v => { FUNC_VINC[v.membro_id] = v; }); } catch (e) { /* sem vínculos */ }
-  main.innerHTML = `<div class="ph"><h1>2.1 · Rol de membros</h1>${pode(PERMS, 'membros', 'criar') ? `<button class="btn" onclick="abrirImportador('membros', () => location.reload())">⬆ Importar de Excel ou banco antigo</button>` : ''}</div>
+  main.innerHTML = `<div class="ph"><h1>Rol de membros</h1>${pode(PERMS, 'membros', 'criar') ? `<button class="btn" onclick="abrirImportador('membros', () => location.reload())">⬆ Importar de Excel ou banco antigo</button>` : ''}</div>
     ${u.escopo ? `<div class="note">Você vê e cadastra só os membros da ${esc(nomeUnidade(u.escopo))}. Cadastros novos aguardam o "de acordo" da Secretaria.</div>` : ''}
     <div class="kpis" id="kpis"></div><div id="t"></div>`;
   new Tabela({
