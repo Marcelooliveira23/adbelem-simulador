@@ -65,10 +65,10 @@ function abaBens(el) {
   main.innerHTML = '<div class="ph"><h1>Patrimônio</h1></div><div class="tabs" id="abas"></div><div id="conteudo"></div>';
   const el = document.getElementById('conteudo');
   const abas = [{ k: 'bens', n: 'Bens' }, { k: 'mov', n: 'Movimentações' }, { k: 'inv', n: 'Inventário (conferência)' }, { k: 'prev', n: 'Manutenção preventiva' },
-    { k: 'esp', n: 'Espaços' }, { k: 'etq', n: 'Etiquetas' }, { k: 'almox', n: 'Almoxarifado (materiais)' }];
+    { k: 'esp', n: 'Espaços' }, { k: 'etq', n: 'Etiquetas' }, { k: 'docsed', n: '📝 Documentos (Word/PDF)' }, { k: 'almox', n: 'Almoxarifado (materiais)' }];
   if (pode(PERMS, 'compras', 'consultar')) abas.push({ k: 'compras', n: 'Compras' });
   montarAbas(document.getElementById('abas'), abas, aba => {
     el.innerHTML = '';
-    ({ bens: abaBens, mov: abaMovimentacoes, inv: abaInventario, prev: abaPreventivas, esp: abaEspacos, etq: abaEtiquetas, almox: abaAlmoxarifado, compras: e => abaCompras(e, 'pedir') })[aba](el);
+    ({ bens: abaBens, mov: abaMovimentacoes, inv: abaInventario, prev: abaPreventivas, esp: abaEspacos, etq: abaEtiquetas, docsed: e => abaDocsEditaveis(e, 'patrimonio'), almox: abaAlmoxarifado, compras: e => abaCompras(e, 'pedir') })[aba](el);
   });
 })();

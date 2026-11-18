@@ -3,7 +3,7 @@
    Os dados ficam só neste aparelho (IndexedDB) e continuam ao fechar e abrir de novo. */
 (function () {
   const PYODIDE = new URL('pyodide/', location.href).href;   // cópia do Python no próprio site (não depende de terceiros)
-  const RODAS = ["Flask_Cors-4.0.0-py2.py3-none-any.whl", "Flask_JWT_Extended-4.5.3-py2.py3-none-any.whl", "PyJWT-2.9.0-py3-none-any.whl", "blinker-1.8.2-py3-none-any.whl", "click-8.1.7-py3-none-any.whl", "et_xmlfile-1.1.0-py3-none-any.whl", "flask-3.0.0-py3-none-any.whl", "itsdangerous-2.2.0-py3-none-any.whl", "jinja2-3.1.4-py3-none-any.whl", "openpyxl-3.1.5-py2.py3-none-any.whl", "werkzeug-3.0.1-py3-none-any.whl"];
+  const RODAS = ["Flask_Cors-4.0.0-py2.py3-none-any.whl", "Flask_JWT_Extended-4.5.3-py2.py3-none-any.whl", "PyJWT-2.9.0-py3-none-any.whl", "blinker-1.8.2-py3-none-any.whl", "click-8.1.7-py3-none-any.whl", "cobble-0.1.4-py3-none-any.whl", "et_xmlfile-1.1.0-py3-none-any.whl", "flask-3.0.0-py3-none-any.whl", "itsdangerous-2.2.0-py3-none-any.whl", "jinja2-3.1.4-py3-none-any.whl", "mammoth-1.8.0-py2.py3-none-any.whl", "openpyxl-3.1.5-py2.py3-none-any.whl", "pypdf-5.1.0-py3-none-any.whl", "werkzeug-3.0.1-py3-none-any.whl"];
   const fetchOriginal = window.fetch.bind(window);
   let pronto = null, fila = Promise.resolve();
 

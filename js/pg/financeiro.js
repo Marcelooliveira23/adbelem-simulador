@@ -101,10 +101,10 @@ async function alternarPagamento(id, status) {
   if (pode(PERMS, 'tesouraria', 'editar')) abas.push({ k: 'conc', n: 'Conciliação bancária' });
   abas.push({ k: 'pagar', n: 'Contas a pagar' }, { k: 'saldos', n: '💵 Contas e saldos' }, { k: 'orc', n: 'Orçamento' }, { k: 'fech', n: '📊 Fechamento do mês' });
   if (pode(PERMS, 'tesouraria', 'contribuintes')) abas.push({ k: 'contrib', n: 'Contribuintes' });
-  abas.push({ k: 'func', n: '👔 Funcionários e prestadores' }, { k: 'forn', n: 'Fornecedores' }, { k: 'plano', n: 'Plano de contas' });
+  abas.push({ k: 'docsed', n: '📝 Documentos (Word/PDF)' }, { k: 'func', n: '👔 Funcionários e prestadores' }, { k: 'forn', n: 'Fornecedores' }, { k: 'plano', n: 'Plano de contas' });
   document.getElementById('t').insertAdjacentHTML('afterend', '<div id="contrib" hidden></div>');
   // Abas com conteúdo próprio (as demais filtram a tabela de lançamentos)
-  const ESPECIAIS = { func: abaFuncionarios, saldos: abaContasSaldos, orc: abaOrcamento, pagar: abaContasPagar, fech: abaFechamento, forn: abaFornecedores, plano: abaPlanoContas, contrib: abaContribuintes, caixa: abaCaixa, camp: abaCampanhas, conc: abaConciliacao, banco: abaBanco, acertos: abaAcertos, compras: el => abaCompras(el, 'aprovar') };
+  const ESPECIAIS = { docsed: e => abaDocsEditaveis(e, 'tesouraria'), func: abaFuncionarios, saldos: abaContasSaldos, orc: abaOrcamento, pagar: abaContasPagar, fech: abaFechamento, forn: abaFornecedores, plano: abaPlanoContas, contrib: abaContribuintes, caixa: abaCaixa, camp: abaCampanhas, conc: abaConciliacao, banco: abaBanco, acertos: abaAcertos, compras: el => abaCompras(el, 'aprovar') };
   montarAbas(document.getElementById('abas'), abas, aba => {
     document.getElementById('t').hidden = aba in ESPECIAIS;
     document.getElementById('contrib').hidden = !(aba in ESPECIAIS);

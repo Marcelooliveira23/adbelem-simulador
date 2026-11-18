@@ -80,17 +80,40 @@ function matrizPrivilegios(pasta, perfis) {
     </table></div><p style="font-size:12.5px;color:var(--mut);margin-bottom:0">Para dar um nível a alguém: aba "Usuários e acessos" › Novo usuário (ou Editar) › Perfil.</p></div>`;
 }
 
-function abaPerfis(el) {
-  const grupos = {};
+async function abaPerfis(el) {
+  let m;
+  try { m = await api('/admin/perfis/matriz'); } catch (e) { el.innerHTML = `<p class="vazio">${esc(e.message)}</p>`; return; }
   const grupoDe = p => p.pasta || (p.id === 1 ? 'ti' : 'presidencia');
-  PERFIS.forEach(p => (grupos[grupoDe(p)] ||= []).push(p));
+  const grupos = {};
+  m.perfis.forEach(p => (grupos[grupoDe(p)] ||= []).push(p));
   const ordem = ['presidencia', 'tesouraria', 'secretaria', 'patrimonio', 'ti'];
-  el.innerHTML = `<div class="note">Cada pasta tem três níveis. O primeiro de cada pasta (perfil <b>chefe</b>) administra os acessos da própria pasta.
-      O Administrador (TI) tem acesso completo e pode existir mais de um.</div>
-    ${Object.keys(grupos).sort((x, y) => ordem.indexOf(x) - ordem.indexOf(y)).map(g => `<h3 style="margin:18px 0 8px">${esc(NOME_PASTA[g] || g)}</h3>
-      <div class="grid g2">${grupos[g].map(p => `<div class="card"><h3>${esc(p.nome)} ${p.admin_pasta ? '<span class="badge b-info">Administra a pasta</span>' : ''}</h3>
-        <p style="margin:0;font-size:13.5px">${esc(p.descricao)}</p></div>`).join('')}</div>
-      ${matrizPrivilegios(g, grupos[g])}`).join('')}`;
+  const linhas = m.catalogo.flatMap(c => c.acoes.map(a => ({ chave: `${c.modulo}.${a.acao}`, area: c.nome, acao: a.rotulo })));
+  el.innerHTML = `<div class="note">Ligue ✓ ou desligue o que cada nível pode fazer em cada área e clique em <b>Salvar</b>. A mudança vale na hora para todos
+      os usuários daquele nível e fica registrada no log. O chefe de cada pasta ajusta os níveis auxiliar e consulta da sua pasta;
+      o Administrador (TI) ajusta todos. "Restaurar padrão" volta ao que vem de fábrica.</div>
+    ${Object.keys(grupos).sort((x, y) => ordem.indexOf(x) - ordem.indexOf(y)).map(g => {
+      const ps = grupos[g];
+      return `<div class="card"><h3>${esc(NOME_PASTA[g] || g)}</h3><div class="tw"><table class="mtz">
+        <tr><th>Área · ação</th>${ps.map(p => `<th style="text-align:center">${esc(p.nome)}${p.personalizado ? '<br><span class="badge b-info">Personalizado</span>' : ''}</th>`).join('')}</tr>
+        ${linhas.map((l, i) => `<tr${i && linhas[i - 1].area !== l.area ? ' class="mtz-grupo"' : ''}><td><small style="color:var(--mut)">${esc(l.area)}</small> · ${esc(l.acao)}</td>
+          ${ps.map(p => { const on = p.permissoes.includes(l.chave), lib = p.liberaveis.includes(l.chave), dif = on !== p.padrao.includes(l.chave);
+            return `<td style="text-align:center${dif ? ';background:#fff8dc' : ''}"><input type="checkbox" aria-label="${esc(p.nome)}: ${esc(l.area)} ${esc(l.acao)}"
+              data-p="${p.id}" value="${l.chave}"${on ? ' checked' : ''}${p.editavel && (on || lib) ? '' : ' disabled'}></td>`; }).join('')}</tr>`).join('')}
+        <tr><td></td>${ps.map(p => `<td style="text-align:center">${p.editavel ? `<button class="btn sm pri" onclick="salvarNivel(${p.id})">Salvar</button>
+          ${p.personalizado ? `<br><button class="btn sm" style="margin-top:4px" onclick="restaurarNivel(${p.id})">Restaurar padrão</button>` : ''}`
+          : `<small style="color:var(--mut)" title="${esc(p.motivo)}">🔒</small>`}</td>`).join('')}</tr>
+      </table></div><p style="font-size:12px;color:var(--mut);margin:6px 0 0">Fundo amarelo = diferente do padrão de fábrica.</p></div>`;
+    }).join('')}`;
+}
+async function salvarNivel(pid) {
+  const permissoes = [...document.querySelectorAll(`input[data-p="${pid}"]:checked`)].map(i => i.value);
+  try { const r = await api(`/admin/perfis/${pid}/permissoes`, { method: 'PUT', body: { permissoes } }); showToast('✓ ' + r.msg); abaPerfis(document.getElementById('conteudo')); }
+  catch (e) { showToast('❌ ' + e.message); }
+}
+async function restaurarNivel(pid) {
+  if (!confirm('Voltar este nível aos acessos padrão de fábrica?')) return;
+  try { const r = await api(`/admin/perfis/${pid}/permissoes`, { method: 'DELETE' }); showToast('✓ ' + r.msg); abaPerfis(document.getElementById('conteudo')); }
+  catch (e) { showToast('❌ ' + e.message); }
 }
 
 async function abaLog(el) {
@@ -241,7 +264,7 @@ function abaSenha(el) {
   const rp = await api('/admin/perfis');
   PERFIS = rp.perfis; PASTA_ADM = rp.pasta_administrada;
   main.innerHTML = '<div class="ph"><h1>Administração</h1></div><div class="tabs" id="abas"></div><div id="conteudo"></div>';
-  montarAbas(document.getElementById('abas'), [{ k: 'u', n: 'Usuários e acessos' }, { k: 'p', n: 'Perfis de acesso' },
+  montarAbas(document.getElementById('abas'), [{ k: 'u', n: 'Usuários e acessos' }, { k: 'p', n: '🔐 Níveis de acesso' },
     ...(pode(PERMS, 'admin', 'auditoria') ? [{ k: 'seg', n: '🛡️ Segurança' }, { k: 'ac', n: 'Acessos' }, { k: 'l', n: 'Log de ações' }] : []),
     ...(pode(PERMS, 'admin', 'editar') ? [{ k: 'sis', n: 'Sistema' }] : []), { k: 's', n: 'Minha senha' }],
     aba => ({ u: abaUsuarios, p: abaPerfis, seg: abaSeguranca, ac: abaAcessos, l: abaLog, sis: abaSistema, s: abaSenha })[aba](document.getElementById('conteudo')));

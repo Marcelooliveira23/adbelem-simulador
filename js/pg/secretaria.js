@@ -216,10 +216,10 @@ function abaVerificar(el) {
   const el = document.getElementById('conteudo');
   montarAbas(document.getElementById('abas'), [
     { k: 'docs', n: 'Cartas e declarações' }, { k: 'cart', n: 'Carteirinhas' }, { k: 'agenda', n: '📅 Agenda' }, { k: 'escalas', n: 'Escalas' }, { k: 'vis', n: 'Visitantes' }, { k: 'ebd', n: 'Escola Dominical' }, { k: 'freq', n: 'Frequência dos cultos' },
-    { k: 'dep', n: 'Departamentos e ministérios' }, { k: 'reg', n: 'Livro de registros' }, { k: 'atas', n: 'Atas' },
+    { k: 'docsed', n: '📝 Documentos (Word/PDF)' }, { k: 'dep', n: 'Departamentos e ministérios' }, { k: 'reg', n: 'Livro de registros' }, { k: 'atas', n: 'Atas' },
     { k: 'alertas', n: '🔔 Alertas' }, { k: 'arq', n: 'Arquivo digital' }, { k: 'cont', n: 'Contratos e aluguéis' },
     { k: 'compras', n: 'Compras (revistas EBD)' }, { k: 'modelos', n: 'Modelos de cartas' }, { k: 'cong', n: 'Congregações' },
     { k: 'ver', n: 'Conferir autenticidade' },
-  ], aba => ({ docs: abaDocumentos, cart: abaCarteirinha, vis: abaVisitantes, dep: abaDepartamentos, agenda: abaAgenda, escalas: abaEscalas, ebd: abaEBD, freq: abaFrequencia, reg: abaRegistros, atas: abaAtas, alertas: abaAlertas, arq: abaArquivos, cont: abaContratos,
+  ], aba => ({ docs: abaDocumentos, cart: abaCarteirinha, vis: abaVisitantes, dep: abaDepartamentos, docsed: e => abaDocsEditaveis(e, 'secretaria'), agenda: abaAgenda, escalas: abaEscalas, ebd: abaEBD, freq: abaFrequencia, reg: abaRegistros, atas: abaAtas, alertas: abaAlertas, arq: abaArquivos, cont: abaContratos,
     compras: e => abaCompras(e, 'pedir'), modelos: abaModelos, cong: abaCongregacoes, ver: abaVerificar })[aba](el));
 })();
